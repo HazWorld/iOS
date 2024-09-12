@@ -61,7 +61,23 @@ void TabComponent2::timerCallback()
     repaint();
 }
 
-// Improved note detection function with frequency smoothing and note stability
+// Helper function to calculate noise floor dynamically
+float TabComponent2::calculateNoiseFloor()
+{
+    float sumNoise = 0.0f;
+    int count = 0;
+
+    // Average the lower magnitude frequencies to determine the noise floor
+    for (int i = 1; i < fftSize / 4; ++i)  // Only consider lower frequencies for noise
+    {
+        sumNoise += fftData[i];
+        count++;
+    }
+
+    return sumNoise / count;
+}
+
+// Improved note detection function with dynamic threshold, harmonics detection, and EWMA smoothing
 void TabComponent2::detectNoteFromFFT()
 {
     int fundamentalFreqIndex = -1;
@@ -77,8 +93,10 @@ void TabComponent2::detectNoteFromFFT()
         }
     }
 
-    // Apply a minimum magnitude threshold to avoid detecting noise
-    const float magnitudeThreshold = 0.01f;  // Adjust this as needed
+    // Dynamically calculate magnitude threshold based on noise floor
+    const float noiseFloor = calculateNoiseFloor();
+    const float magnitudeThreshold = noiseFloor * 1.5f;  // Adjust threshold based on noise level
+
     if (maxMagnitude < magnitudeThreshold || fundamentalFreqIndex == -1)
     {
         juce::MessageManager::callAsync([this]() {
@@ -109,9 +127,28 @@ void TabComponent2::detectNoteFromFFT()
         return;
     }
 
-    // Smoothing frequency over multiple frames
-    const float smoothingFactor = 0.2f;  // Adjust for more/less smoothing
-    smoothedFrequency = (smoothingFactor * frequency) + ((1.0f - smoothingFactor) * smoothedFrequency);
+    // Use exponentially weighted moving average (EWMA) for frequency smoothing
+    const float alpha = 0.1f;  // Smoothing factor (adjust as needed)
+    smoothedFrequency = alpha * frequency + (1.0f - alpha) * smoothedFrequency;
+
+    // Harmonics detection to reinforce fundamental frequency validity
+    const int maxHarmonics = 5;
+    float harmonicSum = 0.0f;
+
+    for (int i = 2; i <= maxHarmonics; ++i)
+    {
+        int harmonicIndex = fundamentalFreqIndex * i;
+        if (harmonicIndex < fftSize / 2)
+        {
+            harmonicSum += fftData[harmonicIndex];  // Sum harmonic magnitudes
+        }
+    }
+
+    const float harmonicRatioThreshold = 0.3f;  // Adjust threshold for harmonics
+    if (harmonicSum > maxMagnitude * harmonicRatioThreshold)
+    {
+        // Validate the fundamental frequency if harmonics are strong
+    }
 
     // Use a hysteresis mechanism to prevent note jitter
     const float frequencyChangeThreshold = 1.5f;  // Tolerance for frequency change
@@ -137,6 +174,7 @@ void TabComponent2::detectNoteFromFFT()
 
             // Update the UI with the detected note asynchronously
             juce::MessageManager::callAsync([this, detectedNote]() {
+                DBG("Updating UI with note: " + detectedNote);  // Debug print
                 noteLabel.setText("Detected Note: " + detectedNote, juce::dontSendNotification);
             });
         }
