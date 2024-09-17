@@ -6,13 +6,10 @@ TabComponent2::TabComponent2()
 {
     addAndMakeVisible(noteLabel);
     noteLabel.setText("Play a note...", juce::dontSendNotification);
-    noteLabel.setFont(juce::FontOptions(24.0f));
+    noteLabel.setFont(juce::FontOptions(24.0f));  // Use Font for text
     noteLabel.setJustificationType(juce::Justification::centred);
 
     setSize(600, 400);
-    initializeAudioResources();  // Initialize the FFT windowing
-
-    startTimerHz(30);  // 30 times per second (33ms)
 
     // Initialize smoothing and stability variables
     lastFrequency = 0.0f;
@@ -21,163 +18,70 @@ TabComponent2::TabComponent2()
     currentNote = "";
 }
 
-TabComponent2::~TabComponent2()
-{
-    // No shutdownAudio here as the main component handles it
-}
+TabComponent2::~TabComponent2() { }
 
 void TabComponent2::prepareToPlay(int samplesPerBlockExpected, double sampleRate)
 {
-    this->sampleRate = sampleRate;
+    yinProcessor.initialize(sampleRate, samplesPerBlockExpected);  // Initialize YIN
+
+    // Initialize the low-pass filter to filter out higher frequencies
+    lowPassFilter.setCoefficients(juce::IIRCoefficients::makeLowPass(sampleRate, 1500.0));
 }
 
 void TabComponent2::getNextAudioBlock(const juce::AudioSourceChannelInfo& bufferToFill)
 {
-    if (bufferToFill.buffer->getNumChannels() > 0)
+    if (bufferToFill.buffer != nullptr && bufferToFill.buffer->getNumChannels() > 0)
     {
-        processFFTData(bufferToFill, [&]() { detectNoteFromFFT(); });
-        bufferToFill.clearActiveBufferRegion();  // Clear buffer after processing
-    }
-}
+        const float* inputChannelData = bufferToFill.buffer->getReadPointer(0);
+        int numSamples = bufferToFill.buffer->getNumSamples();
 
-void TabComponent2::releaseResources()
-{
-    // Nothing specific to release, so this can be left empty
-}
-
-void TabComponent2::resized()
-{
-    noteLabel.setBounds(getLocalBounds());
-}
-
-void TabComponent2::paint(juce::Graphics& g)
-{
-    g.fillAll(juce::Colours::darkgrey);
-    drawGraph(g, getLocalBounds().toFloat());
-}
-
-void TabComponent2::timerCallback()
-{
-    repaint();
-}
-
-// Helper function to calculate noise floor dynamically
-float TabComponent2::calculateNoiseFloor()
-{
-    float sumNoise = 0.0f;
-    int count = 0;
-
-    // Average the lower magnitude frequencies to determine the noise floor
-    for (int i = 1; i < fftSize / 4; ++i)  // Only consider lower frequencies for noise
-    {
-        sumNoise += fftData[i];
-        count++;
-    }
-
-    return sumNoise / count;
-}
-
-// Improved note detection function with dynamic threshold, harmonics detection, and EWMA smoothing
-void TabComponent2::detectNoteFromFFT()
-{
-    int fundamentalFreqIndex = -1;
-    float maxMagnitude = 0.0f;
-
-    // Find the peak in the FFT (fundamental frequency)
-    for (int i = 1; i < fftSize / 2; ++i)  // Start at 1 to ignore DC
-    {
-        if (fftData[i] > maxMagnitude)
+        if (numSamples > 0)
         {
-            maxMagnitude = fftData[i];
-            fundamentalFreqIndex = i;
+            // Apply low-pass filter to remove high-frequency noise
+            lowPassFilter.processSamples(bufferToFill.buffer->getWritePointer(0), numSamples);
+
+            // Detect note from the filtered input
+            detectNoteFromYIN(inputChannelData, numSamples);
+
+            // Trigger a repaint to show the new waveform
+            repaint();
         }
     }
+}
 
-    // Dynamically calculate magnitude threshold based on noise floor
-    const float noiseFloor = calculateNoiseFloor();
-    const float magnitudeThreshold = noiseFloor * 1.5f;  // Adjust threshold based on noise level
+void TabComponent2::detectNoteFromYIN(const float* audioBuffer, int numSamples)
+{
+    float detectedPitch = yinProcessor.process(audioBuffer, numSamples);
 
-    if (maxMagnitude < magnitudeThreshold || fundamentalFreqIndex == -1)
+    if (detectedPitch > 0.0f)  // Valid pitch detected
     {
-        juce::MessageManager::callAsync([this]() {
-            noteLabel.setText("No Note Detected", juce::dontSendNotification);
-        });
-        return;
-    }
+        const float alpha = 0.2f;  // Slightly higher smoothing factor for better response
+        smoothedFrequency = alpha * detectedPitch + (1.0f - alpha) * smoothedFrequency;
 
-    // Parabolic interpolation for more accurate frequency estimation
-    float interpolatedIndex = fundamentalFreqIndex;
-    if (fundamentalFreqIndex > 0 && fundamentalFreqIndex < fftSize / 2 - 1)
-    {
-        float alpha = fftData[fundamentalFreqIndex - 1];
-        float beta = fftData[fundamentalFreqIndex];
-        float gamma = fftData[fundamentalFreqIndex + 1];
-        interpolatedIndex += (gamma - alpha) / (2.0f * (2.0f * beta - alpha - gamma));  // Parabolic interpolation formula
-    }
-
-    // Calculate the fundamental frequency
-    float frequency = interpolatedIndex * (sampleRate / fftSize);
-
-    // Filter frequency to typical guitar range (~82 Hz to ~1318 Hz)
-    if (frequency < 82.0f || frequency > 1318.0f)
-    {
-        juce::MessageManager::callAsync([this]() {
-            noteLabel.setText("No Note Detected", juce::dontSendNotification);
-        });
-        return;
-    }
-
-    // Use exponentially weighted moving average (EWMA) for frequency smoothing
-    const float alpha = 0.1f;  // Smoothing factor (adjust as needed)
-    smoothedFrequency = alpha * frequency + (1.0f - alpha) * smoothedFrequency;
-
-    // Harmonics detection to reinforce fundamental frequency validity
-    const int maxHarmonics = 5;
-    float harmonicSum = 0.0f;
-
-    for (int i = 2; i <= maxHarmonics; ++i)
-    {
-        int harmonicIndex = fundamentalFreqIndex * i;
-        if (harmonicIndex < fftSize / 2)
+        // Stability mechanism: update the UI only if the frequency is stable
+        const float frequencyChangeThreshold = 0.5f;  // Tighter allowable deviation
+        if (std::abs(smoothedFrequency - lastFrequency) > frequencyChangeThreshold)
         {
-            harmonicSum += fftData[harmonicIndex];  // Sum harmonic magnitudes
+            stableNoteHoldTime = 0;  // Reset stability counter
         }
-    }
+        else
+        {
+            stableNoteHoldTime++;  // Increment stability counter
+        }
 
-    const float harmonicRatioThreshold = 0.3f;  // Adjust threshold for harmonics
-    if (harmonicSum > maxMagnitude * harmonicRatioThreshold)
-    {
-        // Validate the fundamental frequency if harmonics are strong
-    }
-
-    // Use a hysteresis mechanism to prevent note jitter
-    const float frequencyChangeThreshold = 1.5f;  // Tolerance for frequency change
-    if (std::abs(smoothedFrequency - lastFrequency) > frequencyChangeThreshold)
-    {
-        stableNoteHoldTime = 0;  // Reset hold time when the frequency changes
+        const int stableFramesRequired = 8;  // Fewer frames for faster response
+        if (stableNoteHoldTime >= stableFramesRequired)
+        {
+            lastFrequency = smoothedFrequency;  // Update the stable frequency
+            juce::String detectedNote = getNoteNameFromFrequency(smoothedFrequency);
+            updateNoteUI(detectedNote);
+        }
     }
     else
     {
-        stableNoteHoldTime++;  // Increment hold time if frequency is stable
-    }
-
-    // If the frequency has been stable for a sufficient number of frames
-    const int stableFramesRequired = 15;  // Adjust for more/less stability
-    if (stableNoteHoldTime >= stableFramesRequired)
-    {
-        lastFrequency = smoothedFrequency;  // Update last stable frequency
-        juce::String detectedNote = getNoteNameFromFrequency(smoothedFrequency);
-
-        if (detectedNote != currentNote)
-        {
-            currentNote = detectedNote;  // Update current note only if different
-
-            // Update the UI with the detected note asynchronously
-            juce::MessageManager::callAsync([this, detectedNote]() {
-                DBG("Updating UI with note: " + detectedNote);  // Debug print
-                noteLabel.setText("Detected Note: " + detectedNote, juce::dontSendNotification);
-            });
-        }
+        juce::MessageManager::callAsync([this]() {
+            noteLabel.setText("No Note Detected", juce::dontSendNotification);
+        });
     }
 }
 
@@ -188,11 +92,64 @@ juce::String TabComponent2::getNoteNameFromFrequency(float frequency)
     if (frequency <= 0)
         return "Unknown";
 
-    // Adjust for A440 tuning
     int noteNumber = static_cast<int>(std::round(12.0f * std::log2(frequency / 440.0f))) + 69;
-    
-    int octave = noteNumber / 12 - 1;  // Calculate the octave
-    juce::String noteName = noteNames[noteNumber % 12];  // Note name within an octave
+    int octave = noteNumber / 12 - 1;
+    juce::String noteName = noteNames[noteNumber % 12];
 
     return noteName + juce::String(octave);
+}
+
+void TabComponent2::updateNoteUI(const juce::String& detectedNote)
+{
+    if (detectedNote != currentNote)
+    {
+        currentNote = detectedNote;
+
+        juce::MessageManager::callAsync([this, detectedNote]() {
+            noteLabel.setFont(juce::FontOptions(40.0f, juce::Font::bold));  // Font settings
+            noteLabel.setColour(juce::Label::textColourId, juce::Colours::cyan);
+            noteLabel.setText("Detected Note: " + detectedNote, juce::dontSendNotification);
+        });
+    }
+}
+
+// Paint method definition to fix the undefined symbol error
+void TabComponent2::paint(juce::Graphics& g)
+{
+    // Fill the background with a color
+    g.fillAll(juce::Colours::darkgrey);  // Dark grey background
+
+    // Draw the waveform from YINAudioComponent
+    const std::vector<float>& waveform = yinProcessor.getWaveformBuffer();
+    if (!waveform.empty())
+    {
+        g.setColour(juce::Colours::cyan);  // Set waveform color
+        juce::Path waveformPath;
+
+        // Map the waveform values to the screen
+        const int width = getWidth();
+        const int height = getHeight();
+        const float centerY = height * 0.5f;
+
+        waveformPath.startNewSubPath(0, centerY);
+
+        for (int i = 0; i < width && i < waveform.size(); ++i)
+        {
+            const float x = (float)i;
+            const float y = centerY - waveform[i] * (centerY);  // Scale waveform vertically
+            waveformPath.lineTo(x, y);
+        }
+
+        g.strokePath(waveformPath, juce::PathStrokeType(1.0f));  // Draw waveform with 1px stroke
+    }
+
+    // Set text properties and draw the title
+    g.setFont(16.0f);
+    g.setColour(juce::Colours::white);
+    g.drawText("Note Detector", getLocalBounds(), juce::Justification::centredTop, true);  // Title at the top
+}
+
+void TabComponent2::resized()
+{
+    noteLabel.setBounds(getLocalBounds());
 }

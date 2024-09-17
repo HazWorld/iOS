@@ -2,45 +2,44 @@
 
 #include <JuceHeader.h>
 #include <array>
-#include <vector>
-#include "FFTAudioComponent.hpp"
+#include <cmath>
+#include "YINAudioComponent.hpp"
 
 //==============================================================================
-// TabComponent2 header (Note Detector)
-class TabComponent2 : public FFTAudioComponent, private juce::Timer
+// Tab 2 header (Note Detector)
+class TabComponent2 : public juce::AudioAppComponent
 {
 public:
     TabComponent2();
     ~TabComponent2() override;
 
-    void prepareToPlay(int samplesPerBlockExpected, double sampleRate);
-    void getNextAudioBlock(const juce::AudioSourceChannelInfo& bufferToFill);
-    void releaseResources();
+    // Audio-related methods
+    void prepareToPlay(int samplesPerBlockExpected, double sampleRate) override;
+    void getNextAudioBlock(const juce::AudioSourceChannelInfo& bufferToFill) override;
+    void releaseResources() override {}
+
+    // UI methods
     void resized() override;
     void paint(juce::Graphics& g) override;
 
 private:
-    juce::Label noteLabel;
+    juce::Label noteLabel;                 // Label to display detected notes
+    YINAudioComponent yinProcessor;        // YIN pitch detection processor
+    juce::IIRFilter lowPassFilter;         // Low-pass filter for noise reduction
 
-    // Timer callback to update the graph
-    void timerCallback() override;
+    float lastFrequency;                   // Last detected frequency
+    float smoothedFrequency;               // Smoothed detected frequency
+    int stableNoteHoldTime;                // Stability counter for note detection
+    juce::String currentNote;              // Currently detected note
 
-    // Note detection and smoothing
-    void detectNoteFromFFT();
+    // YIN-based note detection
+    void detectNoteFromYIN(const float* audioBuffer, int numSamples);
+
+    // Convert frequency to note name
     juce::String getNoteNameFromFrequency(float frequency);
 
-    // Dynamic noise floor calculation
-    float calculateNoiseFloor();
+    // Update the UI with the detected note
+    void updateNoteUI(const juce::String& detectedNote);
 
-    // Smoothing and hysteresis parameters for note detection stability
-    float lastFrequency = 0.0f;
-    float smoothedFrequency = 0.0f;
-    int stableNoteHoldTime = 0;
-    juce::String currentNote = "Unknown";
-
-    // Harmonics detection for fundamental frequency validation
-    const int maxHarmonics = 5;
-    
-    
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(TabComponent2)
 };
