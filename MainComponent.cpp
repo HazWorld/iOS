@@ -1,3 +1,4 @@
+// MainComponent.cpp
 #include "MainComponent.hpp"
 
 //==============================================================================
@@ -5,6 +6,8 @@
 MainComponent::MainComponent()
     : tabs(juce::TabbedButtonBar::TabsAtBottom)
 {
+    DBG("MainComponent Constructor Called");
+
     // Apply the custom LookAndFeel for iPhone-style design
     setLookAndFeel(&customLookAndFeel);  // Set custom LookAndFeel
 
@@ -13,6 +16,9 @@ MainComponent::MainComponent()
     tabs.addTab("Chord Detector", juce::Colours::lightblue, &tab1, false);
     tabs.addTab("Note Detector", juce::Colours::lightgreen, &tab2, false);
     tabs.addTab("Settings", juce::Colours::lightcoral, &tab3, false);
+
+    // Initialize audio with 1 input channel and no output
+    setAudioChannels(1, 0);  // Mono input, no output
 
     setSize(600, 400);
 }
@@ -39,22 +45,12 @@ void MainComponent::paint(juce::Graphics& g)
 
 //==============================================================================
 // Audio setup and handling methods
-
 void MainComponent::prepareToPlay(int samplesPerBlockExpected, double sampleRate)
 {
-    auto* audioDevice = deviceManager.getCurrentAudioDevice();
-    
-    if (audioDevice != nullptr)
-    {
-        auto activeInputChannels = audioDevice->getActiveInputChannels();
-        auto activeOutputChannels = audioDevice->getActiveOutputChannels();
+    DBG("prepareToPlay called with sampleRate: " + juce::String(sampleRate) +
+        " and samplesPerBlockExpected: " + juce::String(samplesPerBlockExpected));
 
-        if (activeInputChannels.countNumberOfSetBits() != 1 || activeOutputChannels.countNumberOfSetBits() != 0)
-        {
-            setAudioChannels(1, 0);  // Mono input, no output
-        }
-    }
-
+    // Call prepareToPlay on the active tab (if necessary)
     tab1.prepareToPlay(samplesPerBlockExpected, sampleRate);
     tab2.prepareToPlay(samplesPerBlockExpected, sampleRate);
 }
@@ -67,10 +63,11 @@ void MainComponent::getNextAudioBlock(const juce::AudioSourceChannelInfo& buffer
         return;
     }
 
-    if (tabs.getCurrentTabIndex() == 0)  // Chord Detector Tab
-        tab1.getNextAudioBlock(bufferToFill);
+    // Pass the buffer to the active tab only
+//    if (tabs.getCurrentTabIndex() == 0)  // Chord Detector Tab
+//        tab1.processAudioBuffer(bufferToFill);
     else if (tabs.getCurrentTabIndex() == 1)  // Note Detector Tab
-        tab2.getNextAudioBlock(bufferToFill);
+        tab2.processAudioBuffer(bufferToFill);
     else
         bufferToFill.clearActiveBufferRegion();  // Clear buffer if not handled
 }
@@ -78,5 +75,5 @@ void MainComponent::getNextAudioBlock(const juce::AudioSourceChannelInfo& buffer
 void MainComponent::releaseResources()
 {
     tab1.releaseResources();
-    tab2.releaseResources();
+//    tab2.releaseResources();
 }
