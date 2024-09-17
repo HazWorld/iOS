@@ -21,24 +21,16 @@ public:
     void updateNoteUI(const juce::String& detectedNote);
 
 private:
-    juce::Label noteLabel;                 // Label to display detected notes
-    YINAudioComponent yinProcessor;        // YIN pitch detection processor
-    juce::IIRFilter lowPassFilter;         // Low-pass filter for noise reduction
+    juce::Label noteLabel;                     // Label to display detected notes
+    YINAudioComponent yinProcessor;            // YIN pitch detection processor
 
-    float lastFrequency;                   // Last detected frequency
-    float smoothedFrequency;               // Smoothed detected frequency
-    int stableNoteHoldTime;                // Stability counter for note detection
-    juce::String currentNote;              // Currently detected note
+    float lastFrequency;                       // Last detected frequency
+    juce::String currentNote;                  // Currently detected note
+    std::vector<float> waveformBuffer;         // Buffer to store waveform for visualization
 
     // Timer callback to control repainting
     void timerCallback() override;
 
-    // Apply Hanning window
-    void applyHanningWindow(float* buffer, int numSamples);
-
-    // YIN-based note detection
-    void detectNoteFromYIN(const float* audioBuffer, int numSamples);
-    
     // Convert frequency to note name with tolerance
     juce::String getNoteNameFromFrequencyWithTolerance(float frequency);
 

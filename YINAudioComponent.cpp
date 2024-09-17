@@ -27,17 +27,16 @@ void YINAudioComponent::initialize(float sampleRate, int bufferSize)
 
     this->sampleRate = sampleRate;
 
-    // Ensure buffer size is at least MIN_BUFFER_SIZE to detect low frequencies
+    // Pre-allocate buffer sizes for performance
     int detectionBufferSize = bufferSize < MIN_BUFFER_SIZE ? MIN_BUFFER_SIZE : bufferSize;
 
-    if (yinBuffer.size() != detectionBufferSize / 2 || waveformBuffer.size() != detectionBufferSize)
-    {
-        yinBuffer.resize(detectionBufferSize / 2);
-        waveformBuffer.resize(detectionBufferSize);  // Store full audio waveform
-        DBG("Buffers resized: yinBuffer to " + juce::String(detectionBufferSize / 2) + ", waveformBuffer to " + juce::String(detectionBufferSize));
-    }
+    yinBuffer.resize(detectionBufferSize / 2);
+    waveformBuffer.resize(detectionBufferSize);
+    visualizationBuffer.resize(detectionBufferSize);
 
-    accumulatedBuffer.clear();  // Clear the accumulated buffer on initialization
+    accumulatedBuffer.reserve(detectionBufferSize);  // Pre-allocate memory for accumulated buffer
+
+    DBG("Buffers resized: yinBuffer to " + juce::String(detectionBufferSize / 2) + ", waveformBuffer to " + juce::String(detectionBufferSize));
 }
 
 void YINAudioComponent::applyHammingWindow(float* buffer, int numSamples)
@@ -49,56 +48,51 @@ void YINAudioComponent::applyHammingWindow(float* buffer, int numSamples)
     }
 }
 
-// This function now accumulates buffers and only processes when enough samples are gathered
-void YINAudioComponent::processAudioBuffer(const float* audioBuffer, int bufferSize)
+float YINAudioComponent::processAudioBuffer(const float* audioBuffer, int bufferSize)
 {
-//    DBG("Entering processAudioBuffer method");
+    // Real-time waveform visualization (copy to visualizationBuffer)
+    std::memcpy(visualizationBuffer.data(), audioBuffer, bufferSize * sizeof(float));
 
     // Accumulate the incoming audio buffer
     accumulatedBuffer.insert(accumulatedBuffer.end(), audioBuffer, audioBuffer + bufferSize);
 
-    // Check if we have enough samples to match the initialized buffer size (e.g., 1024)
+    // Check if enough samples have been accumulated
     if (accumulatedBuffer.size() >= yinBuffer.size() * 2)
     {
-        // Process the accumulated buffer once it's large enough
-        std::vector<float> processBuffer(accumulatedBuffer.begin(), accumulatedBuffer.begin() + yinBuffer.size() * 2);
+        // Process accumulated samples
+        int detectionBufferSize = static_cast<int>(yinBuffer.size() * 2);
+        std::vector<float> processBuffer(accumulatedBuffer.begin(), accumulatedBuffer.begin() + detectionBufferSize);
 
-        // Call the pitch detection process with the full buffer
-        int detectedPitch = process(processBuffer.data(), static_cast<int>(processBuffer.size()));
+        float detectedPitch = process(processBuffer.data(), detectionBufferSize);
 
-        // Remove the processed samples from the accumulated buffer
-        accumulatedBuffer.erase(accumulatedBuffer.begin(), accumulatedBuffer.begin() + yinBuffer.size() * 2);
+        // Remove processed samples
+        accumulatedBuffer.erase(accumulatedBuffer.begin(), accumulatedBuffer.begin() + detectionBufferSize);
 
-        // Log detected pitch
-        if (detectedPitch > 0.0f)
-        {
-            DBG("Detected pitch: " + juce::String(detectedPitch) + " Hz");
-            // You can call a function here to update the UI or handle the pitch result.
-        }
+        return detectedPitch;  // Return the detected pitch
     }
+
+    return -1.0f;  // Return invalid pitch if no valid detection was made
 }
 
 float YINAudioComponent::process(const float* audioBuffer, int bufferSize)
 {
-    DBG("Entering process method");
+//    DBG("Entering YIN process method");
 
     if (audioBuffer == nullptr || bufferSize <= 0)
     {
-        DBG("Invalid audio buffer or buffer size");
+//        DBG("Invalid audio buffer or buffer size");
         return -1.0f;
     }
 
-    float magnitude = 0.0f;
-    for (int i = 0; i < bufferSize; ++i)
-    {
-        magnitude += std::abs(audioBuffer[i]);
-    }
-    
+    float magnitude = std::accumulate(audioBuffer, audioBuffer + bufferSize, 0.0f, [](float acc, float val) {
+        return acc + std::abs(val);
+    });
+
     // Dynamic threshold based on signal magnitude
     float dynamicThreshold = std::max(inputMagnitudeThreshold, DEFAULT_DYNAMIC_THRESHOLD_MULTIPLIER * magnitude / bufferSize);
     if (magnitude / bufferSize < dynamicThreshold)
     {
-        DBG("Input signal magnitude below threshold, skipping pitch detection.");
+//        DBG("Signal below dynamic threshold, skipping pitch detection.");
         return -1.0f;
     }
 
@@ -107,10 +101,10 @@ float YINAudioComponent::process(const float* audioBuffer, int bufferSize)
 
     std::copy(windowedBuffer.begin(), windowedBuffer.end(), waveformBuffer.begin());
 
+    // Auto-correlation to detect pitch
     for (int tau = 1; tau < bufferSize / 2; tau++)
     {
         yinBuffer[tau] = 0.0f;
-
         for (int j = 0; (j + tau) < bufferSize; j++)
         {
             float diff = windowedBuffer[j] - windowedBuffer[j + tau];
@@ -128,18 +122,18 @@ float YINAudioComponent::process(const float* audioBuffer, int bufferSize)
         yinBuffer[tau] *= tau / (sum + epsilon);
     }
 
-    // Use fixed dynamic tolerance for pitch detection
     for (int tau = 1; tau < bufferSize / 2; tau++)
     {
         if (yinBuffer[tau] < FIXED_DYNAMIC_TOLERANCE)
         {
             float betterTau = static_cast<float>(tau);
+
             if (tau > 1 && tau < bufferSize / 2 - 1)
             {
                 float s0 = yinBuffer[tau - 1];
                 float s1 = yinBuffer[tau];
                 float s2 = yinBuffer[tau + 1];
-                
+
                 float denominator = 2.0f * (2.0f * s1 - s2 - s0);
                 if (std::abs(denominator) > epsilon)
                 {
@@ -149,8 +143,7 @@ float YINAudioComponent::process(const float* audioBuffer, int bufferSize)
 
             float detectedPitch = sampleRate / betterTau;
 
-            // Log the detected pitch and tau for debugging
-            DBG("Detected tau: " + juce::String(tau) + ", betterTau: " + juce::String(betterTau));
+//            DBG("Detected tau: " + juce::String(tau) + ", betterTau: " + juce::String(betterTau));
             DBG("Detected pitch: " + juce::String(detectedPitch) + " Hz");
 
             return detectedPitch;
@@ -159,4 +152,9 @@ float YINAudioComponent::process(const float* audioBuffer, int bufferSize)
 
     DBG("No valid pitch detected.");
     return -1.0f;
+}
+
+const std::vector<float>& YINAudioComponent::getVisualizationData() const
+{
+    return visualizationBuffer;
 }
