@@ -50,7 +50,6 @@
 		EEC15E8E2C92FB0A003BACF9 /* TabComponent1.cpp in Sources */ = {isa = PBXBuildFile; fileRef = EEC15E8C2C92FB0A003BACF9 /* TabComponent1.cpp */; };
 		EEC15E912C92FB16003BACF9 /* TabComponent2.cpp in Sources */ = {isa = PBXBuildFile; fileRef = EEC15E8F2C92FB16003BACF9 /* TabComponent2.cpp */; };
 		EEC15E942C92FB24003BACF9 /* TabComponent3.cpp in Sources */ = {isa = PBXBuildFile; fileRef = EEC15E922C92FB24003BACF9 /* TabComponent3.cpp */; };
-		EEC15E972C92FB7A003BACF9 /* FFTAudioComponent.cpp in Sources */ = {isa = PBXBuildFile; fileRef = EEC15E952C92FB7A003BACF9 /* FFTAudioComponent.cpp */; };
 		EEC15E9A2C983C59003BACF9 /* YINAudioComponent.cpp in Sources */ = {isa = PBXBuildFile; fileRef = EEC15E982C983C59003BACF9 /* YINAudioComponent.cpp */; };
 		EEC15E9F2C9885FD003BACF9 /* MainComponent.cpp in Sources */ = {isa = PBXBuildFile; fileRef = EEC15E9E2C9885FD003BACF9 /* MainComponent.cpp */; };
 		EEC15EA12C988650003BACF9 /* Main.cpp in Sources */ = {isa = PBXBuildFile; fileRef = EEC15EA02C988650003BACF9 /* Main.cpp */; };
@@ -125,8 +124,6 @@
 		EEC15E902C92FB16003BACF9 /* TabComponent2.hpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.h; path = TabComponent2.hpp; sourceTree = "<group>"; };
 		EEC15E922C92FB24003BACF9 /* TabComponent3.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = TabComponent3.cpp; sourceTree = "<group>"; };
 		EEC15E932C92FB24003BACF9 /* TabComponent3.hpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.h; path = TabComponent3.hpp; sourceTree = "<group>"; };
-		EEC15E952C92FB7A003BACF9 /* FFTAudioComponent.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = FFTAudioComponent.cpp; sourceTree = "<group>"; };
-		EEC15E962C92FB7A003BACF9 /* FFTAudioComponent.hpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.h; path = FFTAudioComponent.hpp; sourceTree = "<group>"; };
 		EEC15E982C983C59003BACF9 /* YINAudioComponent.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = YINAudioComponent.cpp; sourceTree = "<group>"; };
 		EEC15E992C983C59003BACF9 /* YINAudioComponent.hpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.h; path = YINAudioComponent.hpp; sourceTree = "<group>"; };
 		EEC15E9C2C98858E003BACF9 /* MainComponent.hpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.h; path = MainComponent.hpp; sourceTree = "<group>"; };
@@ -262,8 +259,6 @@
 				EEC15E902C92FB16003BACF9 /* TabComponent2.hpp */,
 				EEC15E922C92FB24003BACF9 /* TabComponent3.cpp */,
 				EEC15E932C92FB24003BACF9 /* TabComponent3.hpp */,
-				EEC15E952C92FB7A003BACF9 /* FFTAudioComponent.cpp */,
-				EEC15E962C92FB7A003BACF9 /* FFTAudioComponent.hpp */,
 				EEC15E982C983C59003BACF9 /* YINAudioComponent.cpp */,
 				EEC15E992C983C59003BACF9 /* YINAudioComponent.hpp */,
 				EEC15EA02C988650003BACF9 /* Main.cpp */,
@@ -409,7 +404,6 @@
 				0752A098A94608C25745172E /* include_juce_core_CompilationTime.cpp in Sources */,
 				825EAE21C6D7E32BBAC258C1 /* include_juce_cryptography.mm in Sources */,
 				F52C2654A770B463DBD8285D /* include_juce_data_structures.mm in Sources */,
-				EEC15E972C92FB7A003BACF9 /* FFTAudioComponent.cpp in Sources */,
 				A72798D8748D1E37E19CD881 /* include_juce_dsp.mm in Sources */,
 				C5691072E3C0B96FBB9B8909 /* include_juce_events.mm in Sources */,
 				87955CFB540508FE37AB5654 /* include_juce_graphics.mm in Sources */,
