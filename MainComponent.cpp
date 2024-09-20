@@ -1,5 +1,5 @@
-// MainComponent.cpp
 #include "MainComponent.hpp"
+#include "CustomLookAndFeel.hpp"
 
 //==============================================================================
 // MainComponent implementation
@@ -9,18 +9,23 @@ MainComponent::MainComponent()
     DBG("MainComponent Constructor Called");
 
     // Apply the custom LookAndFeel for iPhone-style design
-    setLookAndFeel(&customLookAndFeel);  // Set custom LookAndFeel
+    setLookAndFeel(&customLookAndFeel);
+
+    // Set full-screen behavior for mobile devices
+    if (auto* display = juce::Desktop::getInstance().getDisplays().getPrimaryDisplay())
+    {
+        setBounds(display->userArea);  // Set the component to fill the entire screen
+    }
 
     addAndMakeVisible(tabs);
 
+    // Add tabs for different sections
     tabs.addTab("Chord Detector", juce::Colours::lightblue, &tab1, false);
-    tabs.addTab("Note Detector", juce::Colours::lightgreen, &tab2, false);
-    tabs.addTab("Settings", juce::Colours::lightcoral, &tab3, false);
+    tabs.addTab("Scales", juce::Colours::lightgreen, &tab2, false);
+    tabs.addTab("Tempo", juce::Colours::lightcoral, &tab3, false);
 
-    // Initialize audio with 1 input channel and no output
-    setAudioChannels(1, 0);  // Mono input, no output
-
-    setSize(600, 400);
+    // Initialize audio with mono input and no output
+    setAudioChannels(1, 0);
 }
 
 MainComponent::~MainComponent()
@@ -32,8 +37,8 @@ MainComponent::~MainComponent()
 void MainComponent::resized()
 {
     auto bounds = getLocalBounds();
-    int padding = 20;  // Padding for the layout
-    bounds.reduce(padding, padding);  // Add padding around the edges
+    int padding = bounds.getWidth() / 30;  // Set padding relative to screen width
+    bounds.reduce(padding, padding);  // Add dynamic padding
 
     tabs.setBounds(bounds);
 }
@@ -41,16 +46,16 @@ void MainComponent::resized()
 void MainComponent::paint(juce::Graphics& g)
 {
     g.fillAll(juce::Colours::white);  // Clean white background to match iOS style
+    g.setColour(juce::Colours::lightgrey);  // Light grey border
+    g.drawRoundedRectangle(getLocalBounds().toFloat(), 20.0f, 2.0f);  // Rounded corners
 }
 
 //==============================================================================
-// Audio setup and handling methods
 void MainComponent::prepareToPlay(int samplesPerBlockExpected, double sampleRate)
 {
     DBG("prepareToPlay called with sampleRate: " + juce::String(sampleRate) +
         " and samplesPerBlockExpected: " + juce::String(samplesPerBlockExpected));
 
-    // Call prepareToPlay on the active tab (if necessary)
     tab1.prepareToPlay(samplesPerBlockExpected, sampleRate);
     tab2.prepareToPlay(samplesPerBlockExpected, sampleRate);
 }
@@ -64,9 +69,7 @@ void MainComponent::getNextAudioBlock(const juce::AudioSourceChannelInfo& buffer
     }
 
     // Pass the buffer to the active tab only
-//    if (tabs.getCurrentTabIndex() == 0)  // Chord Detector Tab
-//        tab1.processAudioBuffer(bufferToFill);
-    else if (tabs.getCurrentTabIndex() == 1)  // Note Detector Tab
+    else if (tabs.getCurrentTabIndex() == 1)
         tab2.processAudioBuffer(bufferToFill);
     else
         bufferToFill.clearActiveBufferRegion();  // Clear buffer if not handled
@@ -76,4 +79,15 @@ void MainComponent::releaseResources()
 {
     tab1.releaseResources();
 //    tab2.releaseResources();
+//    tab3.releaseResources();
+}
+
+void MainComponent::suspended()
+{
+    shutdownAudio();
+}
+
+void MainComponent::resumed()
+{
+    setAudioChannels(1, 0);  // Re-enable mono input, no output
 }

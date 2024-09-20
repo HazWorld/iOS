@@ -50,27 +50,25 @@ void YINAudioComponent::applyHammingWindow(float* buffer, int numSamples)
 
 float YINAudioComponent::processAudioBuffer(const float* audioBuffer, int bufferSize)
 {
-    // Real-time waveform visualization
-    std::memcpy(visualizationBuffer.data(), audioBuffer, bufferSize * sizeof(float));
-
-    // Accumulate the incoming audio buffer
+    // Accumulate the input audio buffer
     accumulatedBuffer.insert(accumulatedBuffer.end(), audioBuffer, audioBuffer + bufferSize);
 
-    // Check if enough samples have been accumulated
+    // Check if enough samples have been collected
     if (accumulatedBuffer.size() >= yinBuffer.size() * 2)
     {
+        // starts processing of the buffer
         int detectionBufferSize = static_cast<int>(yinBuffer.size() * 2);
         std::vector<float> processBuffer(accumulatedBuffer.begin(), accumulatedBuffer.begin() + detectionBufferSize);
 
         float detectedPitch = process(processBuffer.data(), detectionBufferSize);
 
-        // Remove processed samples
+        // Removing any processed samples
         accumulatedBuffer.erase(accumulatedBuffer.begin(), accumulatedBuffer.begin() + detectionBufferSize);
 
-        return detectedPitch;  // Return the detected pitch
+        return detectedPitch;
     }
 
-    return -1.0f;  // Return invalid pitch if no valid detection was made
+    return -1.0f;  // Returns an invalid pitch for debug
 }
 
 float YINAudioComponent::process(const float* audioBuffer, int bufferSize)
@@ -82,10 +80,10 @@ float YINAudioComponent::process(const float* audioBuffer, int bufferSize)
         return acc + std::abs(val);
     });
 
-    // Dynamic threshold based on signal magnitude
+    // threshold based on input magnitude
     float dynamicThreshold = std::max(inputMagnitudeThreshold, DEFAULT_DYNAMIC_THRESHOLD_MULTIPLIER * magnitude / bufferSize);
     if (magnitude / bufferSize < dynamicThreshold)
-        return -1.0f;  // Signal below dynamic threshold
+        return -1.0f;  // Signal below threshold
 
     // Apply Hamming window to buffer
     std::vector<float> windowedBuffer(audioBuffer, audioBuffer + bufferSize);
@@ -113,7 +111,7 @@ float YINAudioComponent::process(const float* audioBuffer, int bufferSize)
         yinBuffer[tau] *= tau / (sum + epsilon);
     }
 
-    // Detect the first dip below the fixed dynamic tolerance
+    // Detect the first dip
     for (int tau = 1; tau < bufferSize / 2; tau++)
     {
         if (yinBuffer[tau] < FIXED_DYNAMIC_TOLERANCE)

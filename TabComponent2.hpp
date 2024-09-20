@@ -2,6 +2,7 @@
 
 #include <JuceHeader.h>
 #include "YINAudioComponent.hpp"
+#include "InfoOverlay.hpp"
 
 class TabComponent2 : public juce::Component,
                       private juce::Timer
@@ -20,8 +21,9 @@ public:
 
     // UI update
     void updateNoteUI(const juce::String& message);
+    void updateStatusUI(const juce::String& message);
 
-    // Reset the learning challenge
+    // Reset the challenge
     void resetChallenge();
 
 private:
@@ -30,6 +32,7 @@ private:
     juce::Label requiredNoteLabel;            // Displays the next required note and the scale
     juce::ComboBox scaleComboBox;             // Allows the user to select a guitar scale
     juce::TextButton resetButton;             // Button to reset the scale challenge
+    juce::Label statusLabel;
 
     // Audio and Note Detection
     YINAudioComponent yinProcessor;           // YIN-based pitch detection processor
@@ -38,6 +41,9 @@ private:
     juce::String currentRequiredNote;         // The note the user needs to play
     int currentNoteIndex;                     // Tracks the current note index in the scale being played
     bool isCorrectNote;                       // Tracks if the correct note was played
+    
+    InfoOverlay infoOverlay;
+    juce::TextButton infoButton;  // Button to toggle information overlay
 
     // Scale Data Structures
     std::vector<juce::String> currentScaleNotes;   // The notes in the selected scale
@@ -67,6 +73,12 @@ private:
 
     // Helper function to position UI components
     void placeComponent(juce::Component& comp, juce::Rectangle<int>& area, int height, int spacing);
+    
+    void showMessageWithDelay(const juce::String& message, int delay, std::function<void()> callback);
+    
+    void moveToNextNote();
+    
+    void toggleInfoOverlay();
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(TabComponent2)
 };

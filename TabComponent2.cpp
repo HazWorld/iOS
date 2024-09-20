@@ -1,5 +1,6 @@
 #include "TabComponent2.hpp"
 
+
 //==============================================================================
 TabComponent2::TabComponent2()
 {
@@ -13,6 +14,18 @@ TabComponent2::TabComponent2()
     requiredNoteLabel.setText("Select a scale...", juce::dontSendNotification);
     requiredNoteLabel.setFont(juce::FontOptions(18.0f, juce::Font::italic));
     requiredNoteLabel.setJustificationType(juce::Justification::centred);
+    
+    addAndMakeVisible(statusLabel);
+    statusLabel.setText("", juce::dontSendNotification);
+    statusLabel.setFont(juce::FontOptions(24.0f, juce::Font::bold));
+    statusLabel.setJustificationType(juce::Justification::centred);
+    
+    addAndMakeVisible(infoButton);
+    infoButton.setButtonText("Info");
+    infoButton.onClick = [this]() { toggleInfoOverlay(); };
+    addAndMakeVisible(infoOverlay);
+    infoOverlay.setVisible(false);  // Initially hidden
+    
 
     addAndMakeVisible(scaleComboBox);
     scaleComboBox.addItem("C Major", 1);
@@ -20,6 +33,7 @@ TabComponent2::TabComponent2()
     scaleComboBox.addItem("C Major Pentatonic", 3);
     scaleComboBox.addItem("A Minor Pentatonic", 4);
     scaleComboBox.addItem("E Blues", 5);
+    //add more scales here
     scaleComboBox.setJustificationType(juce::Justification::centred);
     scaleComboBox.onChange = [this]() { loadScale(); };  // Load the selected scale
 
@@ -45,19 +59,27 @@ TabComponent2::~TabComponent2()
 void TabComponent2::resized()
 {
     auto area = getLocalBounds().reduced(10);
-
+    
+    // Calculate the total height of components
     const int labelHeight = 40;
     const int comboBoxHeight = 30;
     const int buttonHeight = 40;
     const int spacing = 20;
-
+    
     int totalHeight = labelHeight * 2 + comboBoxHeight + buttonHeight + spacing * 3;
-    area.removeFromTop((getHeight() - totalHeight) / 2);  // Center vertically
-
+    
+    // Vertically center the content
+    area.removeFromTop((getHeight() - totalHeight) / 2);
+    
+    // Now place the components in the vertically centered area
     placeComponent(noteLabel, area, labelHeight, spacing);
     placeComponent(requiredNoteLabel, area, labelHeight, spacing);
     placeComponent(scaleComboBox, area, comboBoxHeight, spacing);
     placeComponent(resetButton, area, buttonHeight, spacing);
+    placeComponent(infoButton, area, buttonHeight, spacing);
+    
+    // Ensure the overlay covers the full bounds
+    infoOverlay.setBounds(getLocalBounds());
 }
 
 void TabComponent2::paint(juce::Graphics& g)
@@ -65,11 +87,14 @@ void TabComponent2::paint(juce::Graphics& g)
     g.fillAll(juce::Colours::darkgrey);  // Background color
 }
 
+
 void TabComponent2::prepareToPlay(int samplesPerBlockExpected, double sampleRate)
 {
     yinProcessor.initialize(sampleRate, samplesPerBlockExpected);
 }
 
+
+//Audio processing for note detection from YIN
 void TabComponent2::processAudioBuffer(const juce::AudioSourceChannelInfo& bufferToFill)
 {
     if (bufferToFill.buffer != nullptr && bufferToFill.buffer->getNumChannels() > 0)
@@ -85,7 +110,6 @@ void TabComponent2::processAudioBuffer(const juce::AudioSourceChannelInfo& buffe
 
             if (detectedPitch > 0.0f)
             {
-                // Use callAsync to ensure UI updates happen on the main thread
                 juce::MessageManager::callAsync([this, detectedPitch]()
                 {
                     checkNoteInScale(detectedPitch);
@@ -95,6 +119,9 @@ void TabComponent2::processAudioBuffer(const juce::AudioSourceChannelInfo& buffe
     }
 }
 
+
+//takes the detected pitch and matches it to the correct note
+// returns the note plaus the octive of that note
 juce::String TabComponent2::getNoteNameFromFrequencyWithTolerance(float frequency)
 {
     static const std::array<juce::String, 12> noteNames = { "C", "C#", "D", "D#", "E", "F", "F#", "G", "G#", "A", "A#", "B" };
@@ -120,54 +147,43 @@ juce::String TabComponent2::getNoteNameFromFrequencyWithTolerance(float frequenc
 void TabComponent2::checkNoteInScale(float frequency)
 {
     juce::String detectedNote = getNoteNameFromFrequencyWithTolerance(frequency);
-
-    // Update the note being played on the UI
     updateNoteUI("Detected: " + detectedNote);
 
-    // Ensure current note index is within bounds
     if (currentNoteIndex >= currentScaleNotes.size()) return;
 
-    // Check if the detected note matches the required note
     if (detectedNote == currentRequiredNote)
     {
-        // Increment the stability counter if the note matches
-        stabilityCounter++;
+        isCorrectNote = true;
+        moveToNextNote();
+        
+    }
+}
+
+void TabComponent2::showMessageWithDelay(const juce::String& message, int delay, std::function<void()> callback)
+{
+    updateNoteUI(message);
+    juce::Timer::callAfterDelay(delay, callback);
+}
+
+void TabComponent2::moveToNextNote()
+{
+    if (currentNoteIndex < currentScaleNotes.size() - 1)
+    {
+        currentNoteIndex++;
+        currentRequiredNote = currentScaleNotes[currentNoteIndex];
+        juce::Timer::callAfterDelay(1000, [this]() {
+            updateRequiredNote();
+            updateStatusUI("Correct!");  // Show "Correct!" in status label
+            
+            juce::Timer::callAfterDelay(2000, [this]() {
+                updateStatusUI("");
+            });
+        });
     }
     else
     {
-        // Reset the stability counter if the note is not stable
-        stabilityCounter = 0;
-    }
-
-    // Once the note has been stable for enough frames, confirm the note
-    if (stabilityCounter >= requiredStabilityCount)
-    {
-        isCorrectNote = true;
-        stabilityCounter = 0;  // Reset the counter for the next note
-
-        // Show "Correct!" and highlight the note in green for 1 second
-        juce::MessageManager::callAsync([this]()
-        {
-            updateNoteUI("Correct!");
-
-            // Move to the next note after 1 second
-            juce::Timer::callAfterDelay(1000, [this]()
-            {
-                isCorrectNote = false;
-                currentNoteIndex++;
-
-                if (currentNoteIndex < currentScaleNotes.size())
-                {
-                    // Update to the next required note
-                    currentRequiredNote = currentScaleNotes[currentNoteIndex];
-                    updateRequiredNote();  // Update the UI to show the next note
-                }
-                else
-                {
-                    // Scale completed
-                    updateNoteUI("Scale completed!");
-                }
-            });
+        juce::Timer::callAfterDelay(1000, [this]() {
+            updateStatusUI("Scale completed!");
         });
     }
 }
@@ -182,20 +198,35 @@ void TabComponent2::updateNoteUI(const juce::String& message)
     }
 }
 
+void TabComponent2::updateStatusUI(const juce::String& message)
+{
+    if (statusLabel.getText() != message)
+    {
+        juce::MessageManager::callAsync([this, message]() {
+            statusLabel.setText(message, juce::dontSendNotification);
+        });
+    }
+}
+
 void TabComponent2::resetChallenge()
 {
-    currentNoteIndex = 0;
-    updateNoteUI("Select a scale...");
-    resetLabelsToDefault();
-    loadScale();
+    currentNoteIndex = 0;  // Restart from the first note
+    updateNoteUI("Starting scale again...");
+    resetLabelsToDefault();  // Reset the labels without clearing the scale
+
+    // Reload the current scale without resetting the ComboBox
+    if (scaleComboBox.getSelectedId() > 0)
+    {
+        loadScale();  // Keep the currently selected scale and restart
+    }
 }
 
 void TabComponent2::resetLabelsToDefault()
 {
     juce::MessageManager::callAsync([this]() {
-        // Remove labels for all scale notes (since we are no longer displaying them)
         noteLabel.setText("No note detected", juce::dontSendNotification);
         requiredNoteLabel.setText("Select a scale...", juce::dontSendNotification);
+        statusLabel.setText("", juce::dontSendNotification);
     });
 }
 
@@ -203,7 +234,6 @@ void TabComponent2::loadScale()
 {
     stringAndFret.clear();
     currentScaleNotes.clear();
-    resetLabelsToDefault();
     currentNoteIndex = 0;
 
     switch (scaleComboBox.getSelectedId())
@@ -286,6 +316,20 @@ void TabComponent2::updateRequiredNote()
             "Play: " + currentRequiredNote + " on " + stringAndFret[currentNoteIndex].first + " at " + stringAndFret[currentNoteIndex].second,
             juce::dontSendNotification
         );
+    }
+}
+
+void TabComponent2::toggleInfoOverlay()
+{
+    if (!infoOverlay.isVisible())
+    {
+        infoOverlay.setInfoContent("This is the information for TabComponent2.\n\nHere you can play scales and detect notes.");
+        infoOverlay.setVisible(true);
+        infoOverlay.toFront(true);
+    }
+    else
+    {
+        infoOverlay.setVisible(false);
     }
 }
 

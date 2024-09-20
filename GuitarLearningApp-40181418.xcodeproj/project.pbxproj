@@ -53,10 +53,23 @@
 		EEC15E9A2C983C59003BACF9 /* YINAudioComponent.cpp in Sources */ = {isa = PBXBuildFile; fileRef = EEC15E982C983C59003BACF9 /* YINAudioComponent.cpp */; };
 		EEC15E9F2C9885FD003BACF9 /* MainComponent.cpp in Sources */ = {isa = PBXBuildFile; fileRef = EEC15E9E2C9885FD003BACF9 /* MainComponent.cpp */; };
 		EEC15EA12C988650003BACF9 /* Main.cpp in Sources */ = {isa = PBXBuildFile; fileRef = EEC15EA02C988650003BACF9 /* Main.cpp */; };
+		EED3F9A22C9C6E9300A2F464 /* GuitarLearningApp_40181418Tests.m in Sources */ = {isa = PBXBuildFile; fileRef = EED3F9A12C9C6E9300A2F464 /* GuitarLearningApp_40181418Tests.m */; };
+		EED3F9B02C9E06C900A2F464 /* CustomLookAndFeel.cpp in Sources */ = {isa = PBXBuildFile; fileRef = EED3F9AE2C9E06C900A2F464 /* CustomLookAndFeel.cpp */; };
+		EED3F9B32C9E084E00A2F464 /* NoteDetection.cpp in Sources */ = {isa = PBXBuildFile; fileRef = EED3F9B12C9E084E00A2F464 /* NoteDetection.cpp */; };
 		F29CA3790AAA81037F88A958 /* include_juce_audio_formats.mm in Sources */ = {isa = PBXBuildFile; fileRef = 54E06ACAEB8F97A06A216BED /* include_juce_audio_formats.mm */; };
 		F52C2654A770B463DBD8285D /* include_juce_data_structures.mm in Sources */ = {isa = PBXBuildFile; fileRef = 0FC8D4FE53521720929AEB46 /* include_juce_data_structures.mm */; };
 		F564173BDD813381A5A3A910 /* AVKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = E832FB2636CA98CF0CEAC3B3 /* AVKit.framework */; };
 /* End PBXBuildFile section */
+
+/* Begin PBXContainerItemProxy section */
+		EED3F9A32C9C6E9300A2F464 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 07FF6E77BC90FDCC1EBA4BA0 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 492C4ED900421947A04AFC67;
+			remoteInfo = "GuitarLearningApp-40181418 - App";
+		};
+/* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
 		03A8221501C1B221A201E086 /* juce_osc */ = {isa = PBXFileReference; lastKnownFileType = folder; name = juce_osc; path = ../../../../Downloads/JUCE/modules/juce_osc; sourceTree = SOURCE_ROOT; };
@@ -129,6 +142,13 @@
 		EEC15E9C2C98858E003BACF9 /* MainComponent.hpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.h; path = MainComponent.hpp; sourceTree = "<group>"; };
 		EEC15E9E2C9885FD003BACF9 /* MainComponent.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = MainComponent.cpp; sourceTree = "<group>"; };
 		EEC15EA02C988650003BACF9 /* Main.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = Main.cpp; sourceTree = "<group>"; };
+		EED3F99F2C9C6E9300A2F464 /* GuitarLearningApp-40181418Tests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = "GuitarLearningApp-40181418Tests.xctest"; sourceTree = BUILT_PRODUCTS_DIR; };
+		EED3F9A12C9C6E9300A2F464 /* GuitarLearningApp_40181418Tests.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = GuitarLearningApp_40181418Tests.m; sourceTree = "<group>"; };
+		EED3F9AC2C9DFC1F00A2F464 /* InfoOverlay.hpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.h; path = InfoOverlay.hpp; sourceTree = "<group>"; };
+		EED3F9AE2C9E06C900A2F464 /* CustomLookAndFeel.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = CustomLookAndFeel.cpp; sourceTree = "<group>"; };
+		EED3F9AF2C9E06C900A2F464 /* CustomLookAndFeel.hpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.h; path = CustomLookAndFeel.hpp; sourceTree = "<group>"; };
+		EED3F9B12C9E084E00A2F464 /* NoteDetection.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = NoteDetection.cpp; sourceTree = "<group>"; };
+		EED3F9B22C9E084E00A2F464 /* NoteDetection.hpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.h; path = NoteDetection.hpp; sourceTree = "<group>"; };
 		F727151337AB2EC979F68348 /* juce_data_structures */ = {isa = PBXFileReference; lastKnownFileType = folder; name = juce_data_structures; path = ../../../../Downloads/JUCE/modules/juce_data_structures; sourceTree = SOURCE_ROOT; };
 		FA84396DD962CB6C3400E0E5 /* LaunchScreen.storyboard */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; path = LaunchScreen.storyboard; sourceTree = SOURCE_ROOT; };
 		FAE989C49CB0F189F62740C2 /* include_juce_audio_devices.mm */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.objcpp; name = include_juce_audio_devices.mm; path = ../../JuceLibraryCode/include_juce_audio_devices.mm; sourceTree = SOURCE_ROOT; };
@@ -160,6 +180,13 @@
 				1796E217F74ED1E8DA50707B /* Metal.framework in Frameworks */,
 				45B58A0CD7787A36515D665D /* MetalKit.framework in Frameworks */,
 				ED9010DEDAA0ADA0D2994DC6 /* UserNotifications.framework in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		EED3F99C2C9C6E9300A2F464 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -242,6 +269,7 @@
 				24079ABC00B4191B50880C4F /* JUCE Modules */,
 				E7B993271E66A56A8D17A228 /* JUCE Library Code */,
 				39F423883C205397523C28AD /* Resources */,
+				EED3F9A02C9C6E9300A2F464 /* GuitarLearningApp-40181418Tests */,
 				1780288B7B6A63E6B86B68E7 /* Frameworks */,
 				CEA5F334836F562833FB9144 /* Products */,
 			);
@@ -262,6 +290,11 @@
 				EEC15E982C983C59003BACF9 /* YINAudioComponent.cpp */,
 				EEC15E992C983C59003BACF9 /* YINAudioComponent.hpp */,
 				EEC15EA02C988650003BACF9 /* Main.cpp */,
+				EED3F9AC2C9DFC1F00A2F464 /* InfoOverlay.hpp */,
+				EED3F9AE2C9E06C900A2F464 /* CustomLookAndFeel.cpp */,
+				EED3F9AF2C9E06C900A2F464 /* CustomLookAndFeel.hpp */,
+				EED3F9B12C9E084E00A2F464 /* NoteDetection.cpp */,
+				EED3F9B22C9E084E00A2F464 /* NoteDetection.hpp */,
 			);
 			name = Source;
 			sourceTree = "<group>";
@@ -270,6 +303,7 @@
 			isa = PBXGroup;
 			children = (
 				462F8F6A67335C3F554FF12F /* GuitarLearningApp-40181418.app */,
+				EED3F99F2C9C6E9300A2F464 /* GuitarLearningApp-40181418Tests.xctest */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -303,6 +337,14 @@
 			name = "JUCE Library Code";
 			sourceTree = "<group>";
 		};
+		EED3F9A02C9C6E9300A2F464 /* GuitarLearningApp-40181418Tests */ = {
+			isa = PBXGroup;
+			children = (
+				EED3F9A12C9C6E9300A2F464 /* GuitarLearningApp_40181418Tests.m */,
+			);
+			path = "GuitarLearningApp-40181418Tests";
+			sourceTree = "<group>";
+		};
 /* End PBXGroup section */
 
 /* Begin PBXNativeTarget section */
@@ -322,6 +364,24 @@
 			productName = "GuitarLearningApp-40181418";
 			productReference = 462F8F6A67335C3F554FF12F /* GuitarLearningApp-40181418.app */;
 			productType = "com.apple.product-type.application";
+		};
+		EED3F99E2C9C6E9300A2F464 /* GuitarLearningApp-40181418Tests */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = EED3F9A52C9C6E9300A2F464 /* Build configuration list for PBXNativeTarget "GuitarLearningApp-40181418Tests" */;
+			buildPhases = (
+				EED3F99B2C9C6E9300A2F464 /* Sources */,
+				EED3F99C2C9C6E9300A2F464 /* Frameworks */,
+				EED3F99D2C9C6E9300A2F464 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				EED3F9A42C9C6E9300A2F464 /* PBXTargetDependency */,
+			);
+			name = "GuitarLearningApp-40181418Tests";
+			productName = "GuitarLearningApp-40181418Tests";
+			productReference = EED3F99F2C9C6E9300A2F464 /* GuitarLearningApp-40181418Tests.xctest */;
+			productType = "com.apple.product-type.bundle.unit-test";
 		};
 /* End PBXNativeTarget section */
 
@@ -355,6 +415,12 @@
 							};
 						};
 					};
+					EED3F99E2C9C6E9300A2F464 = {
+						CreatedOnToolsVersion = 15.4;
+						DevelopmentTeam = C5YU779D9W;
+						ProvisioningStyle = Automatic;
+						TestTargetID = 492C4ED900421947A04AFC67;
+					};
 				};
 			};
 			buildConfigurationList = C9706D0F971E62D4A73EE5B8 /* Build configuration list for PBXProject "GuitarLearningApp-40181418" */;
@@ -370,6 +436,7 @@
 			projectRoot = "";
 			targets = (
 				492C4ED900421947A04AFC67 /* GuitarLearningApp-40181418 - App */,
+				EED3F99E2C9C6E9300A2F464 /* GuitarLearningApp-40181418Tests */,
 			);
 		};
 /* End PBXProject section */
@@ -384,6 +451,13 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
+		EED3F99D2C9C6E9300A2F464 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 /* End PBXResourcesBuildPhase section */
 
 /* Begin PBXSourcesBuildPhase section */
@@ -391,6 +465,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				EED3F9B32C9E084E00A2F464 /* NoteDetection.cpp in Sources */,
 				A7B8057359C8EEFCD3847CFF /* include_juce_analytics.cpp in Sources */,
 				2A69280F1A6D45DF0C217A47 /* include_juce_animation.cpp in Sources */,
 				3725820A1009E948F48D506F /* include_juce_audio_basics.mm in Sources */,
@@ -416,12 +491,29 @@
 				EEC15E8E2C92FB0A003BACF9 /* TabComponent1.cpp in Sources */,
 				EEC15E942C92FB24003BACF9 /* TabComponent3.cpp in Sources */,
 				336EB83B22A9780B2F3228B0 /* include_juce_opengl.mm in Sources */,
+				EED3F9B02C9E06C900A2F464 /* CustomLookAndFeel.cpp in Sources */,
 				78A7E86D2F46B14B005A48A5 /* include_juce_osc.cpp in Sources */,
 				EEC15E9A2C983C59003BACF9 /* YINAudioComponent.cpp in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
+		EED3F99B2C9C6E9300A2F464 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				EED3F9A22C9C6E9300A2F464 /* GuitarLearningApp_40181418Tests.m in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 /* End PBXSourcesBuildPhase section */
+
+/* Begin PBXTargetDependency section */
+		EED3F9A42C9C6E9300A2F464 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 492C4ED900421947A04AFC67 /* GuitarLearningApp-40181418 - App */;
+			targetProxy = EED3F9A32C9C6E9300A2F464 /* PBXContainerItemProxy */;
+		};
+/* End PBXTargetDependency section */
 
 /* Begin XCBuildConfiguration section */
 		4053E3CD0F214ED5E8ABEE9B /* Release */ = {
@@ -670,6 +762,90 @@
 			};
 			name = Debug;
 		};
+		EED3F9A62C9C6E9300A2F464 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = YES;
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++20";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CODE_SIGN_STYLE = Automatic;
+				COPY_PHASE_STRIP = NO;
+				CURRENT_PROJECT_VERSION = 1;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				DEVELOPMENT_TEAM = C5YU779D9W;
+				ENABLE_NS_ASSERTIONS = NO;
+				ENABLE_USER_SCRIPT_SANDBOXING = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu17;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GENERATE_INFOPLIST_FILE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 17.5;
+				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
+				MARKETING_VERSION = 1.0;
+				MTL_ENABLE_DEBUG_INFO = NO;
+				MTL_FAST_MATH = YES;
+				PRODUCT_BUNDLE_IDENTIFIER = "HarrysDiss.GuitarLearningApp-40181418Tests";
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_EMIT_LOC_STRINGS = NO;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/GuitarLearningApp-40181418.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/GuitarLearningApp-40181418";
+				VALIDATE_PRODUCT = YES;
+			};
+			name = Release;
+		};
+		EED3F9A72C9C6E9300A2F464 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = YES;
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++20";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CODE_SIGN_STYLE = Automatic;
+				COPY_PHASE_STRIP = NO;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = C5YU779D9W;
+				ENABLE_TESTABILITY = YES;
+				ENABLE_USER_SCRIPT_SANDBOXING = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu17;
+				GCC_DYNAMIC_NO_PIC = NO;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					"DEBUG=1",
+					"$(inherited)",
+				);
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GENERATE_INFOPLIST_FILE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 17.5;
+				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
+				MARKETING_VERSION = 1.0;
+				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
+				MTL_FAST_MATH = YES;
+				PRODUCT_BUNDLE_IDENTIFIER = "HarrysDiss.GuitarLearningApp-40181418Tests";
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_EMIT_LOC_STRINGS = NO;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/GuitarLearningApp-40181418.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/GuitarLearningApp-40181418";
+			};
+			name = Debug;
+		};
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
@@ -687,6 +863,15 @@
 			buildConfigurations = (
 				4053E3CD0F214ED5E8ABEE9B /* Release */,
 				8274A495F2DD003D96CA2999 /* Debug */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Debug;
+		};
+		EED3F9A52C9C6E9300A2F464 /* Build configuration list for PBXNativeTarget "GuitarLearningApp-40181418Tests" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				EED3F9A62C9C6E9300A2F464 /* Release */,
+				EED3F9A72C9C6E9300A2F464 /* Debug */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Debug;

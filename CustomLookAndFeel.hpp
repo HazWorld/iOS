@@ -1,13 +1,16 @@
-//
-//  CustomLookAndFeel.hpp
-//  GuitarLearningApp-40181418 - App
-//
-//  Created by harry mccormick on 20/09/2024.
-//
+#pragma once
 
-#ifndef CustomLookAndFeel_hpp
-#define CustomLookAndFeel_hpp
+#include <JuceHeader.h>
 
-#include <stdio.h>
+// Custom Look and Feel Class Declaration
+class CustomLookAndFeel : public juce::LookAndFeel_V4
+{
+public:
+    CustomLookAndFeel();
 
-#endif /* CustomLookAndFeel_hpp */
+    // Custom tab button drawing
+    void drawTabButton(juce::TabBarButton& button, juce::Graphics& g, bool isMouseOver, bool isMouseDown) override;
+
+    // Background behind tab buttons
+    void drawTabAreaBehindFrontButton(juce::TabbedButtonBar& bar, juce::Graphics& g, int w, int h) override;
+};
