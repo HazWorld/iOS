@@ -55,7 +55,6 @@
 		EEC15EA12C988650003BACF9 /* Main.cpp in Sources */ = {isa = PBXBuildFile; fileRef = EEC15EA02C988650003BACF9 /* Main.cpp */; };
 		EED3F9A22C9C6E9300A2F464 /* GuitarLearningApp_40181418Tests.m in Sources */ = {isa = PBXBuildFile; fileRef = EED3F9A12C9C6E9300A2F464 /* GuitarLearningApp_40181418Tests.m */; };
 		EED3F9B02C9E06C900A2F464 /* CustomLookAndFeel.cpp in Sources */ = {isa = PBXBuildFile; fileRef = EED3F9AE2C9E06C900A2F464 /* CustomLookAndFeel.cpp */; };
-		EED3F9B32C9E084E00A2F464 /* NoteDetection.cpp in Sources */ = {isa = PBXBuildFile; fileRef = EED3F9B12C9E084E00A2F464 /* NoteDetection.cpp */; };
 		F29CA3790AAA81037F88A958 /* include_juce_audio_formats.mm in Sources */ = {isa = PBXBuildFile; fileRef = 54E06ACAEB8F97A06A216BED /* include_juce_audio_formats.mm */; };
 		F52C2654A770B463DBD8285D /* include_juce_data_structures.mm in Sources */ = {isa = PBXBuildFile; fileRef = 0FC8D4FE53521720929AEB46 /* include_juce_data_structures.mm */; };
 		F564173BDD813381A5A3A910 /* AVKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = E832FB2636CA98CF0CEAC3B3 /* AVKit.framework */; };
@@ -147,8 +146,6 @@
 		EED3F9AC2C9DFC1F00A2F464 /* InfoOverlay.hpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.h; path = InfoOverlay.hpp; sourceTree = "<group>"; };
 		EED3F9AE2C9E06C900A2F464 /* CustomLookAndFeel.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = CustomLookAndFeel.cpp; sourceTree = "<group>"; };
 		EED3F9AF2C9E06C900A2F464 /* CustomLookAndFeel.hpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.h; path = CustomLookAndFeel.hpp; sourceTree = "<group>"; };
-		EED3F9B12C9E084E00A2F464 /* NoteDetection.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = NoteDetection.cpp; sourceTree = "<group>"; };
-		EED3F9B22C9E084E00A2F464 /* NoteDetection.hpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.h; path = NoteDetection.hpp; sourceTree = "<group>"; };
 		F727151337AB2EC979F68348 /* juce_data_structures */ = {isa = PBXFileReference; lastKnownFileType = folder; name = juce_data_structures; path = ../../../../Downloads/JUCE/modules/juce_data_structures; sourceTree = SOURCE_ROOT; };
 		FA84396DD962CB6C3400E0E5 /* LaunchScreen.storyboard */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; path = LaunchScreen.storyboard; sourceTree = SOURCE_ROOT; };
 		FAE989C49CB0F189F62740C2 /* include_juce_audio_devices.mm */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.objcpp; name = include_juce_audio_devices.mm; path = ../../JuceLibraryCode/include_juce_audio_devices.mm; sourceTree = SOURCE_ROOT; };
@@ -293,8 +290,6 @@
 				EED3F9AC2C9DFC1F00A2F464 /* InfoOverlay.hpp */,
 				EED3F9AE2C9E06C900A2F464 /* CustomLookAndFeel.cpp */,
 				EED3F9AF2C9E06C900A2F464 /* CustomLookAndFeel.hpp */,
-				EED3F9B12C9E084E00A2F464 /* NoteDetection.cpp */,
-				EED3F9B22C9E084E00A2F464 /* NoteDetection.hpp */,
 			);
 			name = Source;
 			sourceTree = "<group>";
@@ -465,7 +460,6 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				EED3F9B32C9E084E00A2F464 /* NoteDetection.cpp in Sources */,
 				A7B8057359C8EEFCD3847CFF /* include_juce_analytics.cpp in Sources */,
 				2A69280F1A6D45DF0C217A47 /* include_juce_animation.cpp in Sources */,
 				3725820A1009E948F48D506F /* include_juce_audio_basics.mm in Sources */,
