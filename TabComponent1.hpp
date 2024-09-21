@@ -1,40 +1,33 @@
 #pragma once
 
 #include <JuceHeader.h>
-#include <array>
-#include <map>
 #include "YINAudioComponent.hpp"
 
-//==============================================================================
-// Tab 1 header (Chord Detector)
-class TabComponent1 : public juce::AudioAppComponent
+class TabComponent1 : public juce::Component
 {
 public:
     TabComponent1();
     ~TabComponent1() override;
 
-    // Audio-related methods
-    void prepareToPlay(int samplesPerBlockExpected, double sampleRate) override;
-    void getNextAudioBlock(const juce::AudioSourceChannelInfo& bufferToFill) override;
-    void releaseResources() override;
+    void prepareToPlay(int samplesPerBlockExpected, double sampleRate);
+    void releaseResources();
     
-    // UI and graphical updates
-    void resized() override;
+    void processAudioBuffer(const juce::AudioSourceChannelInfo& bufferToFill);
+
     void paint(juce::Graphics& g) override;
+    void resized() override;
 
 private:
-    juce::Label chordLabel;          // Label to display detected chords
-    YINAudioComponent yinComponent;  // YIN pitch detection component
-    double sampleRate = 0.0;         // Store the sample rate for audio processing
+    void detectChordFromPitches(const std::vector<float>& detectedPitches);
 
-    // Chord templates for chord detection
-    std::map<juce::String, std::vector<int>> chordTemplates;
+    juce::Label chordLabel; // Displays detected chord
+    std::map<juce::String, std::vector<int>> chordTemplates; // Chord templates
+    YINAudioComponent yinComponent;
+    
 
-    // Method to detect chords based on detected pitch from YIN
-    void detectChordFromYIN(float detectedPitch);
-
-    // Smoothed note magnitudes for chord stability
-    static constexpr int stableFramesRequired = 10;
+    double sampleRate;
+    const int stableFramesRequired = 15;
+    static constexpr int MINIMUM_BUFFER_SIZE = 8192;
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(TabComponent1)
 };

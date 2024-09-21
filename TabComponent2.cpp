@@ -67,6 +67,7 @@ void TabComponent2::resized()
     flexBox.alignItems = juce::FlexBox::AlignItems::center;
     
     flexBox.items.add(juce::FlexItem(noteLabel).withMinWidth(300).withMinHeight(40).withMargin(juce::FlexItem::Margin(10)));
+    flexBox.items.add(juce::FlexItem(statusLabel).withMinWidth(300).withMinHeight(40).withMargin(juce::FlexItem::Margin(10)));
     flexBox.items.add(juce::FlexItem(requiredNoteLabel).withMinWidth(300).withMinHeight(40).withMargin(juce::FlexItem::Margin(10)));
     flexBox.items.add(juce::FlexItem(scaleComboBox).withMinWidth(200).withMinHeight(30).withMargin(juce::FlexItem::Margin(10)));
     flexBox.items.add(juce::FlexItem(resetButton).withMinWidth(150).withMinHeight(40).withMargin(juce::FlexItem::Margin(10)));
@@ -103,7 +104,7 @@ void TabComponent2::processAudioBuffer(const juce::AudioSourceChannelInfo& buffe
                 sum += bufferToFill.buffer->getReadPointer(channel)[sample];
 
             float monoSample = sum / bufferToFill.buffer->getNumChannels();
-            float detectedPitch = yinProcessor.processAudioBuffer(&monoSample, 1);
+            float detectedPitch = yinProcessor.processAudioBuffer(&monoSample, 1, false);
 
             if (detectedPitch > 0.0f)
             {
@@ -168,12 +169,15 @@ void TabComponent2::moveToNextNote()
     {
         currentNoteIndex++;
         currentRequiredNote = currentScaleNotes[currentNoteIndex];
+        isCorrectNote = false;  // Reset after correct note is processed
+        
         juce::Timer::callAfterDelay(1000, [this]() {
             updateRequiredNote();
-            updateStatusUI("Correct!");  // Show "Correct!" in status label
+            updateStatusUI("Correct!");
             
             juce::Timer::callAfterDelay(2000, [this]() {
                 updateStatusUI("");
+                isCorrectNote = true;  // Set after message clears
             });
         });
     }
@@ -181,6 +185,7 @@ void TabComponent2::moveToNextNote()
     {
         juce::Timer::callAfterDelay(1000, [this]() {
             updateStatusUI("Scale completed!");
+            isCorrectNote = false;
         });
     }
 }
@@ -347,6 +352,6 @@ void TabComponent2::timerCallback()
 
 void TabComponent2::releaseResources()
 {
-    stopTimer();  // Stop any active timers
-    
+    stopTimer();
 }
+

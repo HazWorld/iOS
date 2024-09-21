@@ -14,25 +14,23 @@ public:
 
     // Main process method for pitch detection
     float process(const float* audioBuffer, int bufferSize);
+    
+    std::vector<float> processMultiplePitches(const float* audioBuffer, int bufferSize);
 
     // Apply a Hamming window to the buffer
-    void applyHammingWindow(float* buffer, int numSamples);
+    void applyHammingWindow(std::vector<float>& buffer);
 
     // New: Accumulate and process audio buffers
-    float processAudioBuffer(const float* audioBuffer, int bufferSize);
-
-    // Get the waveform buffer for visualization purposes
-    const std::vector<float>& getWaveformBuffer() const { return waveformBuffer; }
-
-    // New: Get the buffer for real-time waveform visualization
-    const std::vector<float>& getVisualizationData() const;
+    float processAudioBuffer(const float* audioBuffer, int bufferSize, bool detectMultiplePitches);
 
 private:
     // Buffers for the YIN algorithm and waveform storage
     std::vector<float> yinBuffer;
     std::vector<float> waveformBuffer;
-    std::vector<float> visualizationBuffer;  // New: Buffer for visualization
-    std::vector<float> accumulatedBuffer;    // New: Buffer for accumulating samples
+    std::vector<float> accumulatedBuffer;    // Buffer for accumulating samples
+
+    // Precomputed Hamming window
+    std::vector<float> hammingWindow;
 
     // Parameters
     float tolerance;

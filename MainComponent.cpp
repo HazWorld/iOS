@@ -62,6 +62,7 @@ void MainComponent::prepareToPlay(int samplesPerBlockExpected, double sampleRate
 
 void MainComponent::getNextAudioBlock(const juce::AudioSourceChannelInfo& bufferToFill)
 {
+
     if (bufferToFill.buffer == nullptr || bufferToFill.buffer->getNumChannels() == 0)
     {
         bufferToFill.clearActiveBufferRegion();
@@ -69,17 +70,30 @@ void MainComponent::getNextAudioBlock(const juce::AudioSourceChannelInfo& buffer
     }
 
     // Pass the buffer to the active tab only
-    else if (tabs.getCurrentTabIndex() == 1)
+    if (tabs.getCurrentTabIndex() == 0)  // Chord Detector
+    {
+//        DBG("Processing audio in Tab 1 (Chord Detector)");
+        tab1.processAudioBuffer(bufferToFill);
+    }
+    else if (tabs.getCurrentTabIndex() == 1)  // Scales
+    {
+//        DBG("Processing audio in Tab 2 (Scales)");
         tab2.processAudioBuffer(bufferToFill);
-    else if (tabs.getCurrentTabIndex() == 2)
+    }
+    else if (tabs.getCurrentTabIndex() == 2)  // Tempo
+    {
+//        DBG("Processing audio in Tab 3 (Tempo)");
         tab3.processAudioBuffer(bufferToFill);
+    }
     else
+    {
         bufferToFill.clearActiveBufferRegion();  // Clear buffer if not handled
+    }
 }
 
 void MainComponent::releaseResources()
 {
-    tab1.releaseResources();
+//    tab1.releaseResources();
     tab2.releaseResources();
     tab3.releaseResources();
 }
