@@ -25,6 +25,8 @@ public:
 
     // Reset the challenge
     void resetChallenge();
+    
+    void releaseResources();
 
 private:
     // UI Components

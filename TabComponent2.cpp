@@ -58,27 +58,24 @@ TabComponent2::~TabComponent2()
 
 void TabComponent2::resized()
 {
-    auto area = getLocalBounds().reduced(10);
+    // Add padding around the edges of the component
+    auto area = getLocalBounds().reduced(20);
+
+    juce::FlexBox flexBox;
+    flexBox.flexDirection = juce::FlexBox::Direction::column;
+    flexBox.justifyContent = juce::FlexBox::JustifyContent::center;
+    flexBox.alignItems = juce::FlexBox::AlignItems::center;
     
-    // Calculate the total height of components
-    const int labelHeight = 40;
-    const int comboBoxHeight = 30;
-    const int buttonHeight = 40;
-    const int spacing = 20;
-    
-    int totalHeight = labelHeight * 2 + comboBoxHeight + buttonHeight + spacing * 3;
-    
-    // Vertically center the content
-    area.removeFromTop((getHeight() - totalHeight) / 2);
-    
-    // Now place the components in the vertically centered area
-    placeComponent(noteLabel, area, labelHeight, spacing);
-    placeComponent(requiredNoteLabel, area, labelHeight, spacing);
-    placeComponent(scaleComboBox, area, comboBoxHeight, spacing);
-    placeComponent(resetButton, area, buttonHeight, spacing);
-    placeComponent(infoButton, area, buttonHeight, spacing);
-    
-    // Ensure the overlay covers the full bounds
+    flexBox.items.add(juce::FlexItem(noteLabel).withMinWidth(300).withMinHeight(40).withMargin(juce::FlexItem::Margin(10)));
+    flexBox.items.add(juce::FlexItem(requiredNoteLabel).withMinWidth(300).withMinHeight(40).withMargin(juce::FlexItem::Margin(10)));
+    flexBox.items.add(juce::FlexItem(scaleComboBox).withMinWidth(200).withMinHeight(30).withMargin(juce::FlexItem::Margin(10)));
+    flexBox.items.add(juce::FlexItem(resetButton).withMinWidth(150).withMinHeight(40).withMargin(juce::FlexItem::Margin(10)));
+    flexBox.items.add(juce::FlexItem(infoButton).withMinWidth(150).withMinHeight(40).withMargin(juce::FlexItem::Margin(10)));
+
+    // Perform the layout inside the area
+    flexBox.performLayout(area);
+
+    // Ensure the info overlay covers the full component
     infoOverlay.setBounds(getLocalBounds());
 }
 
@@ -346,4 +343,10 @@ void TabComponent2::timerCallback()
     {
         repaint();
     }
+}
+
+void TabComponent2::releaseResources()
+{
+    stopTimer();  // Stop any active timers
+    
 }

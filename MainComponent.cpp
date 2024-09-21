@@ -71,6 +71,8 @@ void MainComponent::getNextAudioBlock(const juce::AudioSourceChannelInfo& buffer
     // Pass the buffer to the active tab only
     else if (tabs.getCurrentTabIndex() == 1)
         tab2.processAudioBuffer(bufferToFill);
+    else if (tabs.getCurrentTabIndex() == 2)
+        tab3.processAudioBuffer(bufferToFill);
     else
         bufferToFill.clearActiveBufferRegion();  // Clear buffer if not handled
 }
@@ -78,8 +80,8 @@ void MainComponent::getNextAudioBlock(const juce::AudioSourceChannelInfo& buffer
 void MainComponent::releaseResources()
 {
     tab1.releaseResources();
-//    tab2.releaseResources();
-//    tab3.releaseResources();
+    tab2.releaseResources();
+    tab3.releaseResources();
 }
 
 void MainComponent::suspended()

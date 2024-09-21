@@ -1,178 +1,149 @@
 #include "TabComponent3.hpp"
 
 //==============================================================================
+// Define configurable parameters at the top for easy changes
+constexpr float minMagnitudeThreshold = 0.07f;     // Minimum input magnitude for signal detection
+constexpr float debounceDelayMs = 300;             // Minimum delay between valid peaks (debounce)
+constexpr int maxTapTimesSize = 6;                 // Maximum number of peaks to store in the buffer
+constexpr float initialSmoothingFactor = 0.1f;     // Smoothing factor for magnitude and tempo
+constexpr float aggressiveSmoothingFactor = 0.3f;  // Higher smoothing factor for large tempo shifts
+constexpr float dynamicThresholdDecay = 0.98f;     // Decay rate for dynamic threshold
+constexpr float thresholdScaling = 0.7f;           // Scaling for dynamic threshold adjustment
+
+//==============================================================================
 // Constructor
 TabComponent3::TabComponent3()
 {
-    // Set up label for displaying tempo information
     addAndMakeVisible(label);
-    label.setText("Tap to set tempo or start playing", juce::dontSendNotification);
+    label.setText("Adjust Tempo and Start Playing", juce::dontSendNotification);
     label.setJustificationType(juce::Justification::centred);
 
-    // Set up tap button for tap-tempo detection
-    addAndMakeVisible(tapButton);
-    tapButton.setButtonText("Tap Tempo");
-    tapButton.onClick = [this]() { tapTempo(); };
-
-    // Set up slider for manual tempo input
     addAndMakeVisible(tempoSlider);
-    tempoSlider.setRange(40.0, 240.0, 1.0); // Tempo range from 40 BPM to 240 BPM
-    tempoSlider.setValue(120.0);            // Default tempo is 120 BPM
+    tempoSlider.setRange(40.0, 240.0, 1.0);
+    tempoSlider.setValue(120.0);
     tempoSlider.onValueChange = [this]() { setManualTempo(); };
     tempoSlider.setTextValueSuffix(" BPM");
 
-    // Start the timer to update the visual cue and check tempo deviation
-    startTimerHz(30);  // Check every ~33ms (30 FPS)
+    startTimerHz(30);  // 30 FPS for visual updates
 }
 
 //==============================================================================
-// Component Resized
+// Resized: Use FlexBox to layout components
 void TabComponent3::resized()
 {
-    // Arrange UI components
-    auto area = getLocalBounds();
-    label.setBounds(area.removeFromTop(50));
-    tapButton.setBounds(area.removeFromTop(50).reduced(10));
-    tempoSlider.setBounds(area.removeFromTop(50).reduced(10));
+    auto area = getLocalBounds().reduced(20);
 
-    // Visual cue area
-    visualCueArea = area.reduced(10);  // The remaining area will be used for visual cue
+    juce::FlexBox flexBox;
+    flexBox.flexDirection = juce::FlexBox::Direction::column;
+    flexBox.justifyContent = juce::FlexBox::JustifyContent::center;
+    flexBox.alignItems = juce::FlexBox::AlignItems::center;
+
+    flexBox.items.add(juce::FlexItem(label).withMinWidth(300).withMinHeight(40).withMargin(juce::FlexItem::Margin(10)));
+    flexBox.items.add(juce::FlexItem(tempoSlider).withMinWidth(300).withMinHeight(40).withMargin(juce::FlexItem::Margin(10)));
+
+    flexBox.performLayout(area);
+
+    visualCueArea = area.removeFromBottom(200).reduced(10);
 }
 
 //==============================================================================
-// Paint Component (updates background color and visual cue)
+// Paint: Handle UI visuals and tempo pulse
 void TabComponent3::paint(juce::Graphics& g)
 {
-    // Set background color based on tempo deviation and whether the player is playing
-    if (isPlaying && isDeviatingFromTempo)
-        g.fillAll(juce::Colours::red);   // Turn red if deviating from the set tempo
-    else
-        g.fillAll(juce::Colours::lightgrey); // Default light grey when playing correctly or not playing
+    g.fillAll(isPlaying && isDeviatingFromTempo ? juce::Colours::red : juce::Colours::lightgrey);
 
-    // Draw visual cue for the current tempo
     if (showVisualCue)
     {
-        g.setColour(juce::Colours::green);
-        g.fillEllipse(visualCueArea.toFloat());  // Simple pulsating circle as a visual cue
+        auto pulseAlpha = 0.5f + 0.5f * static_cast<float>(std::sin(juce::Time::getMillisecondCounterHiRes() * 0.001 * currentTempo));
+        g.setColour(juce::Colours::green.withAlpha(pulseAlpha));
+        g.fillEllipse(visualCueArea.toFloat());
     }
 }
 
 //==============================================================================
-// Tap tempo function to detect tempo based on user input
-void TabComponent3::tapTempo()
-{
-    using namespace std::chrono;
-    
-    // Capture the current time
-    auto now = steady_clock::now();
-
-    // Store the tap time
-    tapTimes.push_back(now);
-
-    // Only keep the last 2 tap times
-    if (tapTimes.size() > 2)
-        tapTimes.erase(tapTimes.begin());
-
-    // Calculate the tempo based on the interval between the taps
-    if (tapTimes.size() == 2)
-    {
-        auto duration = duration_cast<milliseconds>(tapTimes[1] - tapTimes[0]).count();
-        if (duration > 0)
-        {
-            detectedTempo = 60000.0 / static_cast<double>(duration);  // Convert duration to BPM
-            label.setText("Detected Tempo: " + juce::String(detectedTempo, 2) + " BPM", juce::dontSendNotification);
-        }
-    }
-}
-
-//==============================================================================
-// Set manual tempo from slider
+// Manual Tempo Input
 void TabComponent3::setManualTempo()
 {
     detectedTempo = tempoSlider.getValue();
-    label.setText("Manual Tempo: " + juce::String(detectedTempo, 2) + " BPM", juce::dontSendNotification);
+    juce::MessageManager::callAsync([this]() {
+        label.setText("Manual Tempo: " + juce::String(detectedTempo, 2) + " BPM", juce::dontSendNotification);
+        repaint();
+    });
 }
 
 //==============================================================================
-// Detect peaks in magnitude and calculate the tempo from peaks
+// Peak Detection and Tempo Calculation
 void TabComponent3::detectTempoFromPeaks(float magnitude)
 {
-    // Check if the magnitude exceeds the threshold, meaning the player is playing
-    isPlaying = (magnitude > magnitudeThreshold);
+    adjustThreshold(magnitude);
+    auto now = std::chrono::steady_clock::now();
 
-    if (isPlaying)
+    if (magnitude > dynamicThreshold && magnitude > previousMagnitude &&
+        std::chrono::duration_cast<std::chrono::milliseconds>(now - lastPeakTime).count() > debounceDelayMs)
     {
-        // Detect peaks (when the magnitude crosses the previous magnitude)
-        if (magnitude > previousMagnitude && previousMagnitude < magnitudeThreshold)
+        lastPeakTime = now;
+
+        tapTimes.push_back(now);
+        if (tapTimes.size() > maxTapTimesSize)
+            tapTimes.erase(tapTimes.begin());
+
+        if (tapTimes.size() >= 2)
         {
-            using namespace std::chrono;
-            auto now = steady_clock::now();
-
-            // Store the peak time and calculate tempo from successive peaks
-            tapTimes.push_back(now);
-            if (tapTimes.size() > 2)
-                tapTimes.erase(tapTimes.begin());
-
-            if (tapTimes.size() == 2)
+            double totalDuration = 0.0;
+            for (size_t i = 1; i < tapTimes.size(); ++i)
             {
-                auto duration = duration_cast<milliseconds>(tapTimes[1] - tapTimes[0]).count();
-                if (duration > 0)
-                {
-                    currentTempo = 60000.0 / static_cast<double>(duration);  // Convert duration to BPM
-                }
+                totalDuration += std::chrono::duration_cast<std::chrono::milliseconds>(tapTimes[i] - tapTimes[i - 1]).count();
             }
+            double averageDuration = totalDuration / (tapTimes.size() - 1);
+            float newTempo = 60000.0 / averageDuration;
+
+            float smoothingFactor = std::abs(currentTempo - newTempo) > 20.0f ? aggressiveSmoothingFactor : initialSmoothingFactor;
+            currentTempo = smoothingFactor * newTempo + (1.0f - smoothingFactor) * currentTempo;
+
+            juce::MessageManager::callAsync([this]() {
+                label.setText("Detected Tempo: " + juce::String(currentTempo, 2) + " BPM", juce::dontSendNotification);
+                repaint();
+            });
         }
     }
-    
+
     previousMagnitude = magnitude;
 }
 
 //==============================================================================
-// Simulate tempo deviation detection based on actual playing tempo
+// Adjust Dynamic Threshold
+void TabComponent3::adjustThreshold(float magnitude)
+{
+    static float runningAverage = 0.0f;
+    runningAverage = initialSmoothingFactor * magnitude + (1.0f - initialSmoothingFactor) * runningAverage;
+    dynamicThreshold = std::max(dynamicThreshold * dynamicThresholdDecay, runningAverage * thresholdScaling);
+}
+
+//==============================================================================
+// Check if player is in tempo
 bool TabComponent3::isPlayerInTempo()
 {
-    // Allow a 5% deviation tolerance from the detected tempo
-    double tolerance = detectedTempo * 0.05;
-    return (currentTempo >= detectedTempo - tolerance && currentTempo <= detectedTempo + tolerance);
+    double tolerance = detectedTempo * 0.05;  // 5% tolerance of the detected tempo
+    return (std::abs(currentTempo - detectedTempo) <= tolerance);
 }
 
 //==============================================================================
-// Timer callback to update the visual cue and check tempo deviation
+// Timer Callback for UI updates
 void TabComponent3::timerCallback()
 {
-    if (isPlaying)
-    {
-        if (!isPlayerInTempo())
-        {
-            isDeviatingFromTempo = true;
-        }
-        else
-        {
-            isDeviatingFromTempo = false;
-        }
+    isDeviatingFromTempo = isPlaying && !isPlayerInTempo();
+    showVisualCue = isPlaying && isPlayerInTempo();  // Show green only if playing and in tempo
 
-        // Show visual cue when the player is playing and in tempo
-        showVisualCue = !isDeviatingFromTempo;
-    }
-    else
-    {
-        isDeviatingFromTempo = false;
-        showVisualCue = false;  // Hide visual cue if the player is not playing
-    }
-
-    // Repaint the screen to update the background color and visual cue
-    repaint();
+    juce::MessageManager::callAsync([this]() { repaint(); });
 }
 
 //==============================================================================
-// Audio processing to detect magnitude and feed it into the peak detection
+// Audio Processing
 void TabComponent3::processAudioBuffer(const juce::AudioSourceChannelInfo& bufferToFill)
 {
     if (bufferToFill.buffer != nullptr && bufferToFill.buffer->getNumChannels() > 0)
     {
         float magnitude = 0.0f;
-        
-        // Calculate the magnitude (RMS) of the audio signal
         for (int channel = 0; channel < bufferToFill.buffer->getNumChannels(); ++channel)
         {
             auto* samples = bufferToFill.buffer->getReadPointer(channel);
@@ -183,12 +154,35 @@ void TabComponent3::processAudioBuffer(const juce::AudioSourceChannelInfo& buffe
         }
         magnitude /= (bufferToFill.buffer->getNumChannels() * bufferToFill.buffer->getNumSamples());
 
-        // Detect tempo from peaks in the magnitude
-        detectTempoFromPeaks(magnitude);
+        // Ignore signals below the minimum threshold
+        if (magnitude > minMagnitudeThreshold)
+        {
+            isPlaying = true;
+
+            // Apply smoothing
+            constexpr float smoothingFactor = 0.1f;
+            smoothedMagnitude = smoothingFactor * magnitude + (1.0f - smoothingFactor) * smoothedMagnitude;
+
+            detectTempoFromPeaks(smoothedMagnitude);  // Detect tempo only if magnitude exceeds threshold
+        }
+        else
+        {
+            isPlaying = false;  // No sound detected
+        }
+    }
+    else
+    {
+        isPlaying = false;
     }
 }
 
 void TabComponent3::prepareToPlay(int samplesPerBlockExpected, double sampleRate)
 {
     this->sampleRate = static_cast<int>(sampleRate);
+}
+
+void TabComponent3::releaseResources()
+{
+    // Stops the timer to prevent further UI updates
+    stopTimer();
 }
