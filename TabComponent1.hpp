@@ -1,33 +1,28 @@
 #pragma once
 
 #include <JuceHeader.h>
-#include "YINAudioComponent.hpp"
 
 class TabComponent1 : public juce::Component
 {
 public:
     TabComponent1();
-    ~TabComponent1() override;
+    ~TabComponent1() override = default;
 
-    void prepareToPlay(int samplesPerBlockExpected, double sampleRate);
-    void releaseResources();
-    
-    void processAudioBuffer(const juce::AudioSourceChannelInfo& bufferToFill);
-
+    // UI painting and layout
     void paint(juce::Graphics& g) override;
     void resized() override;
 
 private:
-    void detectChordFromPitches(const std::vector<float>& detectedPitches);
+    // Helper function to load chord positions
+    void loadChord();
 
-    juce::Label chordLabel; // Displays detected chord
-    std::map<juce::String, std::vector<int>> chordTemplates; // Chord templates
-    YINAudioComponent yinComponent;
-    
+    // UI components
+    juce::Label chordLabel;        // Displays selected chord name
+    juce::ComboBox chordComboBox;  // Dropdown to select chords
 
-    double sampleRate;
-    const int stableFramesRequired = 15;
-    static constexpr int MINIMUM_BUFFER_SIZE = 8192;
+    // Chord positions
+    std::vector<std::pair<int, int>> currentChordPositions; // Stores string and fret positions of the current chord
+    std::vector<int> mutedStrings;  // Stores muted string numbers
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(TabComponent1)
 };

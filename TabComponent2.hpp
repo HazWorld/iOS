@@ -30,50 +30,41 @@ public:
 
 private:
     // UI Components
-    juce::Label noteLabel;                    // Displays the detected note feedback
-    juce::Label requiredNoteLabel;            // Displays the next required note and the scale
-    juce::ComboBox scaleComboBox;             // Allows the user to select a guitar scale
-    juce::TextButton resetButton;             // Button to reset the scale challenge
+    juce::Label noteLabel;
+    juce::Label requiredNoteLabel;
+    juce::ComboBox scaleComboBox;
+    juce::TextButton resetButton;
     juce::Label statusLabel;
 
     // Audio and Note Detection
-    YINAudioComponent yinProcessor;           // YIN-based pitch detection processor
-    float lastFrequency;                      // Last detected frequency
-    juce::String currentNote;                 // Currently detected note
-    juce::String currentRequiredNote;         // The note the user needs to play
-    int currentNoteIndex;                     // Tracks the current note index in the scale being played
-    bool isCorrectNote;                       // Tracks if the correct note was played
+    YINAudioComponent yinProcessor;
+    float lastFrequency;
+    juce::String currentNote;
+    juce::String currentRequiredNote;
+    int currentNoteIndex;
+    bool isCorrectNote;
     
     InfoOverlay infoOverlay;
-    juce::TextButton infoButton;  // Button to toggle information overlay
+    juce::TextButton infoButton;
 
-    // Scale Data Structures
-    std::vector<juce::String> currentScaleNotes;   // The notes in the selected scale
-    std::vector<std::pair<juce::String, juce::String>> stringAndFret;  // String and fret info for each note
+    // Scale Data
+    std::vector<juce::String> currentScaleNotes;
+    std::vector<std::pair<juce::String, juce::String>> stringAndFret;
 
-    // Stability mechanism for note detection
-    int stabilityCounter;                     // Counter to track how long the detected note is stable
-    int requiredStabilityCount;               // How many frames the note must be stable for confirmation
+    int stabilityCounter;
+    int requiredStabilityCount;
 
-    // Timer callback to control repainting
+
     void timerCallback() override;
 
-    // Convert the detected frequency to a note name, with tolerance for small variations
     juce::String getNoteNameFromFrequencyWithTolerance(float frequency);
 
-    // Check if the detected note matches the current required note in the scale
     void checkNoteInScale(float frequency);
 
-    // Handle scale selection from the ComboBox
     void loadScale();
 
-    // Update the next required note in the UI
     void updateRequiredNote();
 
-    // Reset the note labels to their default state (e.g., color and text)
-    void resetLabelsToDefault();
-
-    // Helper function to position UI components
     void placeComponent(juce::Component& comp, juce::Rectangle<int>& area, int height, int spacing);
     
     void showMessageWithDelay(const juce::String& message, int delay, std::function<void()> callback);

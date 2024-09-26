@@ -2,13 +2,13 @@
 
 //==============================================================================
 // Define configurable parameters at the top for easy changes
-constexpr float minMagnitudeThreshold = 0.07f;     // Minimum input magnitude for signal detection
-constexpr float debounceDelayMs = 300;             // Minimum delay between valid peaks (debounce)
-constexpr int maxTapTimesSize = 6;                 // Maximum number of peaks to store in the buffer
-constexpr float initialSmoothingFactor = 0.1f;     // Smoothing factor for magnitude and tempo
-constexpr float aggressiveSmoothingFactor = 0.3f;  // Higher smoothing factor for large tempo shifts
-constexpr float dynamicThresholdDecay = 0.98f;     // Decay rate for dynamic threshold
-constexpr float thresholdScaling = 0.7f;           // Scaling for dynamic threshold adjustment
+const float minMagnitudeThreshold = 0.07f;     // Minimum input magnitude for signal detection
+const float debounceDelayMs = 300;             // Minimum delay between valid peaks (debounce)
+const int maxTapTimesSize = 6;                 // Maximum number of peaks to store in the buffer
+const float initialSmoothingFactor = 0.1f;     // Smoothing factor for magnitude and tempo
+const float aggressiveSmoothingFactor = 0.3f;  // Higher smoothing factor for large tempo shifts
+const float dynamicThresholdDecay = 0.98f;     // Decay rate for dynamic threshold
+const float thresholdScaling = 0.7f;           // Scaling for dynamic threshold adjustment
 
 //==============================================================================
 // Constructor
@@ -50,7 +50,7 @@ void TabComponent3::resized()
 // Paint: Handle UI visuals and tempo pulse
 void TabComponent3::paint(juce::Graphics& g)
 {
-    g.fillAll(isPlaying && isDeviatingFromTempo ? juce::Colours::red : juce::Colours::lightgrey);
+    g.fillAll(isPlaying && isDeviatingFromTempo ? juce::Colours::red : juce::Colour::fromRGB(240, 230, 200));
 
     if (showVisualCue)
     {

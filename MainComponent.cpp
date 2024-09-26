@@ -17,15 +17,22 @@ MainComponent::MainComponent()
         setBounds(display->userArea);  // Set the component to fill the entire screen
     }
 
-    addAndMakeVisible(tabs);
+    // Define tab configurations: Title, Color, and Component
+    std::vector<std::tuple<juce::String, juce::Colour, juce::Component*>> tabConfigs = {
+           {"Chord Detector", juce::Colours::lightblue, &tab1},
+           {"Scales", juce::Colours::lightgreen, &tab2},
+           {"Tempo", juce::Colours::lightcoral, &tab3}
+       };
+       
+       addAndMakeVisible(tabs);
 
-    // Add tabs for different sections
-    tabs.addTab("Chord Detector", juce::Colours::lightblue, &tab1, false);
-    tabs.addTab("Scales", juce::Colours::lightgreen, &tab2, false);
-    tabs.addTab("Tempo", juce::Colours::lightcoral, &tab3, false);
+       // Add tabs dynamically
+       for (const auto& config : tabConfigs)
+       {
+           tabs.addTab(std::get<0>(config), std::get<1>(config), std::get<2>(config), false);
+       }
 
-    // Initialize audio with mono input and no output
-    setAudioChannels(1, 0);
+       setAudioChannels(1, 0);  // Mono input, no output
 }
 
 MainComponent::~MainComponent()
@@ -37,63 +44,56 @@ MainComponent::~MainComponent()
 void MainComponent::resized()
 {
     auto bounds = getLocalBounds();
-    int padding = bounds.getWidth() / 30;  // Set padding relative to screen width
-    bounds.reduce(padding, padding);  // Add dynamic padding
 
-    tabs.setBounds(bounds);
+  
+    int padding = bounds.getWidth() / 25;
+    bounds.reduce(padding, padding);
+
+  
+    tabs.setBounds(bounds.withTrimmedBottom(20));
 }
 
 void MainComponent::paint(juce::Graphics& g)
 {
-    g.fillAll(juce::Colours::white);  // Clean white background to match iOS style
-    g.setColour(juce::Colours::lightgrey);  // Light grey border
-    g.drawRoundedRectangle(getLocalBounds().toFloat(), 20.0f, 2.0f);  // Rounded corners
+    g.fillAll(juce::Colour::fromRGB(240, 230, 200));  // Clean white background to match iOS style
 }
 
-//==============================================================================
+
+// Audio preparation
 void MainComponent::prepareToPlay(int samplesPerBlockExpected, double sampleRate)
 {
     DBG("prepareToPlay called with sampleRate: " + juce::String(sampleRate) +
         " and samplesPerBlockExpected: " + juce::String(samplesPerBlockExpected));
 
-    tab1.prepareToPlay(samplesPerBlockExpected, sampleRate);
     tab2.prepareToPlay(samplesPerBlockExpected, sampleRate);
 }
 
 void MainComponent::getNextAudioBlock(const juce::AudioSourceChannelInfo& bufferToFill)
 {
-
     if (bufferToFill.buffer == nullptr || bufferToFill.buffer->getNumChannels() == 0)
     {
         bufferToFill.clearActiveBufferRegion();
         return;
     }
+    // Process audio based on the selected tab
+    switch (tabs.getCurrentTabIndex())
+    {
+        case 1:  // Scales
+            tab2.processAudioBuffer(bufferToFill);
+            break;
 
-    // Pass the buffer to the active tab only
-    if (tabs.getCurrentTabIndex() == 0)  // Chord Detector
-    {
-//        DBG("Processing audio in Tab 1 (Chord Detector)");
-        tab1.processAudioBuffer(bufferToFill);
-    }
-    else if (tabs.getCurrentTabIndex() == 1)  // Scales
-    {
-//        DBG("Processing audio in Tab 2 (Scales)");
-        tab2.processAudioBuffer(bufferToFill);
-    }
-    else if (tabs.getCurrentTabIndex() == 2)  // Tempo
-    {
-//        DBG("Processing audio in Tab 3 (Tempo)");
-        tab3.processAudioBuffer(bufferToFill);
-    }
-    else
-    {
-        bufferToFill.clearActiveBufferRegion();  // Clear buffer if not handled
+        case 2:  // Tempo
+            tab3.processAudioBuffer(bufferToFill);
+            break;
+
+        default:
+            bufferToFill.clearActiveBufferRegion();  // Clears the buffer
+            break;
     }
 }
 
 void MainComponent::releaseResources()
 {
-//    tab1.releaseResources();
     tab2.releaseResources();
     tab3.releaseResources();
 }
