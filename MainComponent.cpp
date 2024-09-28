@@ -8,58 +8,62 @@ MainComponent::MainComponent()
 {
     DBG("MainComponent Constructor Called");
 
-    // Apply the custom LookAndFeel for iPhone-style design
-    setLookAndFeel(&customLookAndFeel);
 
-    // Set full-screen behavior for mobile devices
+    setLookAndFeel(&customLookAndFeel);
+    tabs.setLookAndFeel(&customLookAndFeel);
+
+    tabs.setColour(juce::TabbedComponent::outlineColourId, juce::Colour::fromRGB(240, 230, 200));
+
     if (auto* display = juce::Desktop::getInstance().getDisplays().getPrimaryDisplay())
     {
-        setBounds(display->userArea);  // Set the component to fill the entire screen
+        setBounds(display->userArea);
     }
 
-    // Define tab configurations: Title, Color, and Component
-    std::vector<std::tuple<juce::String, juce::Colour, juce::Component*>> tabConfigs = {
-           {"Chord Detector", juce::Colours::lightblue, &tab1},
-           {"Scales", juce::Colours::lightgreen, &tab2},
-           {"Tempo", juce::Colours::lightcoral, &tab3}
-       };
-       
-       addAndMakeVisible(tabs);
+    std::vector<std::tuple<juce::String, juce::Component*>> tabConfigs = {
+        {"Chords", &tab1},
+        {"Scales", &tab2},
+        {"Tempo", &tab3}
+    };
 
-       // Add tabs dynamically
-       for (const auto& config : tabConfigs)
-       {
-           tabs.addTab(std::get<0>(config), std::get<1>(config), std::get<2>(config), false);
-       }
 
-       setAudioChannels(1, 0);  // Mono input, no output
+    addAndMakeVisible(tabs);
+
+
+    for (const auto& config : tabConfigs)
+    {
+        tabs.addTab(std::get<0>(config), juce::Colours::transparentBlack, std::get<1>(config), false);
+    }
+
+    //Initialize audio
+    setAudioChannels(1, 0);
 }
 
 MainComponent::~MainComponent()
 {
-    setLookAndFeel(nullptr);  // Reset LookAndFeel when destroying the component
-    shutdownAudio();  // Clean up audio resources
+
+    setLookAndFeel(nullptr);
+    shutdownAudio();
 }
 
 void MainComponent::resized()
 {
     auto bounds = getLocalBounds();
 
-  
-    int padding = bounds.getWidth() / 25;
-    bounds.reduce(padding, padding);
 
-  
-    tabs.setBounds(bounds.withTrimmedBottom(20));
+    const int topPadding = 44;
+    const int bottomPadding = 34;
+
+    bounds = bounds.withTrimmedTop(topPadding).withTrimmedBottom(bottomPadding);
+
+    tabs.setBounds(bounds);
 }
 
 void MainComponent::paint(juce::Graphics& g)
 {
-    g.fillAll(juce::Colour::fromRGB(240, 230, 200));  // Clean white background to match iOS style
+    g.fillAll(juce::Colour::fromRGB(240, 230, 200));
 }
 
-
-// Audio preparation
+//audio preparation
 void MainComponent::prepareToPlay(int samplesPerBlockExpected, double sampleRate)
 {
     DBG("prepareToPlay called with sampleRate: " + juce::String(sampleRate) +
@@ -75,19 +79,19 @@ void MainComponent::getNextAudioBlock(const juce::AudioSourceChannelInfo& buffer
         bufferToFill.clearActiveBufferRegion();
         return;
     }
-    // Process audio based on the selected tab
+
     switch (tabs.getCurrentTabIndex())
     {
-        case 1:  // Scales
+        case 1:
             tab2.processAudioBuffer(bufferToFill);
             break;
 
-        case 2:  // Tempo
+        case 2:
             tab3.processAudioBuffer(bufferToFill);
             break;
 
         default:
-            bufferToFill.clearActiveBufferRegion();  // Clears the buffer
+            bufferToFill.clearActiveBufferRegion();  //clears the buffer
             break;
     }
 }
@@ -105,5 +109,5 @@ void MainComponent::suspended()
 
 void MainComponent::resumed()
 {
-    setAudioChannels(1, 0);  // Re-enable mono input, no output
+    setAudioChannels(1, 0);
 }

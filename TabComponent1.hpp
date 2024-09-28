@@ -1,6 +1,7 @@
 #pragma once
 
 #include <JuceHeader.h>
+#include "InfoOverlay.hpp"
 
 class TabComponent1 : public juce::Component
 {
@@ -19,10 +20,15 @@ private:
     // UI components
     juce::Label chordLabel;        // Displays selected chord name
     juce::ComboBox chordComboBox;  // Dropdown to select chords
+    InfoOverlay infoOverlay;
+    juce::TextButton infoButton;
 
     // Chord positions
     std::vector<std::pair<int, int>> currentChordPositions; // Stores string and fret positions of the current chord
     std::vector<int> mutedStrings;  // Stores muted string numbers
+    
+    void toggleInfoOverlay();
+    
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(TabComponent1)
 };

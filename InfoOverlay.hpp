@@ -31,12 +31,10 @@ public:
     
     void paint(juce::Graphics& g) override
     {
-        // Fill the background with a semi-transparent color
-        g.fillAll(juce::Colour(0, 0, 0).withAlpha(0.8f));  // Black background with 80% opacity
 
-        // Optionally, add a border
+        g.fillAll(juce::Colour(0, 0, 0).withAlpha(1.0f));
         g.setColour(juce::Colours::white);
-        g.drawRect(getLocalBounds(), 2);  // White border
+        g.drawRect(getLocalBounds(), 2);
     }
 
 private:

@@ -21,6 +21,7 @@ public:
     void releaseResources() override;
     void suspended();
     void resumed();
+    
 
 private:
     juce::TabbedComponent tabs;

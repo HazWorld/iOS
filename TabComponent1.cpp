@@ -9,6 +9,13 @@ TabComponent1::TabComponent1()
     chordLabel.setText("Select a chord...", juce::dontSendNotification);
     chordLabel.setFont(juce::FontOptions(24.0f, juce::Font::bold));
     chordLabel.setJustificationType(juce::Justification::centred);
+    chordLabel.setColour(juce::Label::textColourId, juce::Colours::black);
+    
+    addAndMakeVisible(infoButton);
+    infoButton.setButtonText("Info");
+    infoButton.onClick = [this]() { toggleInfoOverlay(); };
+    addAndMakeVisible(infoOverlay);
+    infoOverlay.setVisible(false);  // Initially hidden
 
     // Set up the chord ComboBox for selecting chords
     chordComboBox.addItem("C Major", 1);
@@ -40,56 +47,63 @@ void TabComponent1::paint(juce::Graphics& g)
     {
         int fretX = 80 + i * 80;  // Reduced spacing for frets
         g.setColour(juce::Colours::darkgrey);
-        g.drawLine(fretX, 80, fretX, 260, 3.0f);  // Frets are smaller, fit to screen
 
-        // Add fret numbers just above the fret lines
+        //makes the first fret line thicker to resemble the start of the fretboard
+        if (i == 0)
+        {
+            g.drawLine(fretX, 80, fretX, 260, 9.0f);
+        }
+        else
+        {
+            g.drawLine(fretX, 80, fretX, 260, 3.0f);
+        }
+
+        //adds fret numbers just above the fret lines
         g.setColour(juce::Colours::black);
-        g.setFont(juce::FontOptions(14.0f, juce::Font::bold));  // Reduced font size for numbers
+        g.setFont(juce::FontOptions(14.0f, juce::Font::bold));
         g.drawText(juce::String(i + 1), fretX - 5, 60, 20, 20, juce::Justification::centred);
     }
 
-    // Draw strings with thickness variations for realism
+    //draws strings with thickness differences
     juce::Array<float> stringThickness = {1.0f, 1.25f, 1.5f, 1.75f, 2.0f, 2.5f};
-    for (int i = 0; i < 6; ++i)  // Strings
+    for (int i = 0; i < 6; ++i)
     {
         g.setColour(juce::Colours::darkslategrey);
-        g.drawLine(50, 100 + i * 30, getWidth() - 50, 100 + i * 30, stringThickness[i]);  // Adjusted vertical spacing for strings
+        g.drawLine(50, 100 + i * 30, getWidth() - 50, 100 + i * 30, stringThickness[i]);
     }
 
-    // Add fret markers (only on the 3rd fret)
-    g.setColour(juce::Colours::black);
-    g.fillEllipse(160, 230, 10, 10);  // Fret marker at the 3rd fret
-
-    // Highlight chord positions with markers between frets
+    //adds red dots for finger positions
     if (!currentChordPositions.empty())
     {
-        g.setColour(juce::Colours::red);
-        for (const auto& pos : currentChordPositions)
+        for (int i = 0; i < currentChordPositions.size(); ++i)
         {
-            int string = pos.first;  // String number (1 to 6)
-            int fret = pos.second;    // Fret number (0 to 4)
+            const auto& pos = currentChordPositions[i];
+            int string = pos.first;
+            int fret = pos.second;
 
-            // Adjust finger position between frets
-            float xPos = 80 + fret * 80 - 40;  // Reduced fret spacing
-            float yPos = 100 + string * 30 - 10;  // Adjusted string spacing
+            //fret and stringn psoitions
+            float xPos = 80 + fret * 80 - 40;
+            float yPos = 100 + string * 30 - 10;
 
-            // Draw a red circle for finger position
-            g.fillEllipse(xPos, yPos, 15, 15);  // Smaller marker size
+            g.setColour(juce::Colours::red);
+            
+           
+            g.fillEllipse(xPos, yPos, 15, 15);
 
-            // Add inner white highlight for a 3D effect
+           
             g.setColour(juce::Colours::white.withAlpha(0.6f));
-            g.fillEllipse(xPos + 3, yPos + 3, 9, 9);  // Smaller inner highlight
+            g.fillEllipse(xPos + 3, yPos + 3, 9, 9);
         }
     }
 
-    // Draw X markers for muted strings
+   //muted strings implementation
     if (!mutedStrings.empty())
     {
         g.setColour(juce::Colours::black);
         for (int string : mutedStrings)
         {
-            float xPos = 50;  // X position is fixed above the fretboard
-            float yPos = 100 + string * 30 - 10;
+            float xPos = 50;
+            float yPos = 100 + string * 30;
 
             // Draw "X" above the muted string
             g.setFont(juce::FontOptions(16.0f, juce::Font::bold));
@@ -103,48 +117,47 @@ void TabComponent1::loadChord()
     currentChordPositions.clear();
     mutedStrings.clear();
 
-    // Update the chord positions and muted strings based on the selected chord
     switch (chordComboBox.getSelectedId())
     {
-        case 1:  // C Major
-            currentChordPositions = {{4, 3}, {3, 2}, {1, 1}};  // Corrected C Major
-            mutedStrings = {5, 6};  // 5th and 6th strings muted
+        case 1:
+            currentChordPositions = {{4, 3}, {3, 2}, {1, 1}};
+            mutedStrings = {6};
             chordLabel.setText("C Major", juce::dontSendNotification);
             break;
 
-        case 2:  // G Major
-            currentChordPositions = {{5, 3}, {4, 2}, {0, 3}};  // Corrected G Major
-            mutedStrings = {};  // No muted strings
+        case 2:
+            currentChordPositions = {{5, 3}, {4, 2}, {0, 3}};
+            mutedStrings = {};
             chordLabel.setText("G Major", juce::dontSendNotification);
             break;
 
-        case 3:  // D Major
-            currentChordPositions = {{2, 2}, {1, 3}, {0, 2}};  // Corrected D Major
-            mutedStrings = {4, 5, 6};  // 4th, 5th, and 6th strings muted
+        case 3:
+            currentChordPositions = {{2, 2}, {1, 3}, {0, 2}};
+            mutedStrings = {5, 6};
             chordLabel.setText("D Major", juce::dontSendNotification);
             break;
 
-        case 4:  // A Major
-            currentChordPositions = {{3, 2}, {2, 2}, {1, 2}};  // Corrected A Major
-            mutedStrings = {5, 6};  // 5th and 6th strings muted
+        case 4:
+            currentChordPositions = {{3, 2}, {2, 2}, {1, 2}};
+            mutedStrings = {6};
             chordLabel.setText("A Major", juce::dontSendNotification);
             break;
 
-        case 5:  // E Major
-            currentChordPositions = {{4, 2}, {3, 2}, {2, 1}};  // Corrected E Major
-            mutedStrings = {};  // No muted strings
+        case 5:
+            currentChordPositions = {{4, 2}, {3, 2}, {2, 1}};
+            mutedStrings = {};
             chordLabel.setText("E Major", juce::dontSendNotification);
             break;
 
-        case 6:  // A Minor
-            currentChordPositions = {{3, 2}, {2, 2}, {1, 1}};  // Corrected A Minor
-            mutedStrings = {5, 6};  // 5th and 6th strings muted
+        case 6:
+            currentChordPositions = {{3, 2}, {2, 2}, {1, 1}};
+            mutedStrings = {6};
             chordLabel.setText("A Minor", juce::dontSendNotification);
             break;
 
-        case 7:  // E Minor
-            currentChordPositions = {{4, 2}, {3, 2}};  // Corrected E Minor
-            mutedStrings = {};  // No muted strings
+        case 7:
+            currentChordPositions = {{4, 2}, {3, 2}};
+            mutedStrings = {};
             chordLabel.setText("E Minor", juce::dontSendNotification);
             break;
 
@@ -153,21 +166,42 @@ void TabComponent1::loadChord()
             break;
     }
 
-    repaint();  // Update the UI to reflect the new chord positions and muted strings
+    repaint();
 }
 
 void TabComponent1::resized()
 {
-    // Create a FlexBox for vertical and horizontal centering
+    
+    auto bounds = getLocalBounds().reduced(20);
+
+  
     juce::FlexBox flexBox;
     flexBox.flexDirection = juce::FlexBox::Direction::column;
     flexBox.justifyContent = juce::FlexBox::JustifyContent::center;
     flexBox.alignItems = juce::FlexBox::AlignItems::center;
 
-    // Add the chord label and ComboBox to the FlexBox layout
     flexBox.items.add(juce::FlexItem(chordLabel).withMinWidth(300).withMinHeight(40).withMargin(juce::FlexItem::Margin(10)));
     flexBox.items.add(juce::FlexItem(chordComboBox).withMinWidth(200).withMinHeight(30).withMargin(juce::FlexItem::Margin(10)));
+    flexBox.items.add(juce::FlexItem(infoButton).withMinWidth(150).withMinHeight(30).withMargin(juce::FlexItem::Margin(10)));
 
-    // Perform layout within the bounds of the component
-    flexBox.performLayout(getLocalBounds().reduced(20));
+    flexBox.performLayout(bounds);
+
+    infoOverlay.setBounds(getLocalBounds());
+}
+
+void TabComponent1::toggleInfoOverlay()
+{
+    juce::MessageManager::callAsync([this]()
+    {
+        if (!infoOverlay.isVisible())
+        {
+            infoOverlay.setInfoContent("Welcome to the chord library!!\n\nSelect a chord from the list to learn\nhow to play it!!\n\nFinger positions are shown in RED\n\nMuted Strings (you shouldnt play these) are marked with an X");
+            infoOverlay.setVisible(true);
+            infoOverlay.toFront(true);
+        }
+        else
+        {
+            infoOverlay.setVisible(false);
+        }
+    });
 }
