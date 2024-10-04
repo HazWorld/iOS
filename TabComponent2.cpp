@@ -1,10 +1,9 @@
 #include "TabComponent2.hpp"
 
-
 //==============================================================================
 TabComponent2::TabComponent2()
 {
-    // Set up UI components
+    //set up UI components
     addAndMakeVisible(noteLabel);
     noteLabel.setText("No note detected", juce::dontSendNotification);
     noteLabel.setFont(juce::FontOptions(24.0f, juce::Font::bold));
@@ -17,7 +16,6 @@ TabComponent2::TabComponent2()
     requiredNoteLabel.setJustificationType(juce::Justification::centred);
     requiredNoteLabel.setColour(juce::Label::textColourId, juce::Colours::black);
     
-    
     addAndMakeVisible(statusLabel);
     statusLabel.setText("", juce::dontSendNotification);
     statusLabel.setFont(juce::FontOptions(24.0f, juce::Font::bold));
@@ -28,41 +26,37 @@ TabComponent2::TabComponent2()
     infoButton.setButtonText("Info");
     infoButton.onClick = [this]() { toggleInfoOverlay(); };
     addAndMakeVisible(infoOverlay);
-    infoOverlay.setVisible(false);  // Initially hidden
+    infoOverlay.setVisible(false);
     
-
     addAndMakeVisible(scaleComboBox);
     scaleComboBox.addItem("C Major", 1);
     scaleComboBox.addItem("A Minor", 2);
     scaleComboBox.addItem("C Major Pentatonic", 3);
     scaleComboBox.addItem("A Minor Pentatonic", 4);
     scaleComboBox.addItem("E Blues", 5);
-    //add more scales here
     scaleComboBox.setJustificationType(juce::Justification::centred);
-    scaleComboBox.onChange = [this]() { loadScale(); };  // Load the selected scale
+    scaleComboBox.onChange = [this]() { loadScale(); };  //load the selected scale
 
     addAndMakeVisible(resetButton);
     resetButton.setButtonText("Start Again");
     resetButton.onClick = [this]() { resetChallenge(); };
 
-    // Initialize variables
+    //Variables
     lastFrequency = 0.0f;
     currentNoteIndex = 0;
     isCorrectNote = false;
     stabilityCounter = 0;
-    requiredStabilityCount = 15;  // Number of frames required for stability
-
-    startTimerHz(15);  // Reduced timer for UI updates
+    requiredStabilityCount = 15;  //number of frames for stability
 }
 
 TabComponent2::~TabComponent2()
 {
-    stopTimer();
 }
 
+//resizes UI components
 void TabComponent2::resized()
 {
-    // Add padding around the edges of the component
+
     auto area = getLocalBounds().reduced(20);
 
     juce::FlexBox flexBox;
@@ -77,45 +71,39 @@ void TabComponent2::resized()
     flexBox.items.add(juce::FlexItem(resetButton).withMinWidth(150).withMinHeight(40).withMargin(juce::FlexItem::Margin(10)));
     flexBox.items.add(juce::FlexItem(infoButton).withMinWidth(150).withMinHeight(40).withMargin(juce::FlexItem::Margin(10)));
 
-    // Perform the layout inside the area
     flexBox.performLayout(area);
 
-    // Ensure the info overlay covers the full component
     infoOverlay.setBounds(getLocalBounds());
 }
 
+
+//background colour
 void TabComponent2::paint(juce::Graphics& g)
 {
     g.fillAll(juce::Colour::fromRGB(240, 230, 200));
 }
 
-
+//starts yin processing
 void TabComponent2::prepareToPlay(int samplesPerBlockExpected, double sampleRate)
 {
     yinProcessor.initialize(sampleRate, samplesPerBlockExpected);
 }
 
-
-//Audio processing for note detection from YINAudioComponent
+//audio processing for note detection from YINAudioComponent
 void TabComponent2::processAudioBuffer(const juce::AudioSourceChannelInfo& bufferToFill)
 {
-    //checks buffers
     if (bufferToFill.buffer != nullptr && bufferToFill.buffer->getNumChannels() > 0)
     {
-        //audio smaple loop
         for (int sample = 0; sample < bufferToFill.buffer->getNumSamples(); ++sample)
         {
             float sum = 0.0f;
-            //averages signal for mono processing
             for (int channel = 0; channel < bufferToFill.buffer->getNumChannels(); ++channel)
                 sum += bufferToFill.buffer->getReadPointer(channel)[sample];
 
             float monoSample = sum / bufferToFill.buffer->getNumChannels();
             
-            //feeding mono sample into yin processor
             float detectedPitch = yinProcessor.processAudioBuffer(&monoSample, 1);
 
-            //calls checkNoteInScale function for the detected pitch
             if (detectedPitch > 0.0f)
             {
                 juce::MessageManager::callAsync([this, detectedPitch]()
@@ -127,27 +115,18 @@ void TabComponent2::processAudioBuffer(const juce::AudioSourceChannelInfo& buffe
     }
 }
 
-
-//takes the detected pitch and matches it to the correct note
-// returns the note plaus the octive of that note
+// Takes the detected pitch and matches it to the correct note
 juce::String TabComponent2::getNoteNameFromFrequencyWithTolerance(float frequency)
 {
     static const std::array<juce::String, 12> noteNames = { "C", "C#", "D", "D#", "E", "F", "F#", "G", "G#", "A", "A#", "B" };
-    //reference pitch
     const float referenceA4 = 440.0f;
-    //frequency tolerence for detected pitches
     const float tolerance = 5.0f;
 
-    //calculates the semitones above or below reference
     int midiNote = static_cast<int>(std::round(12.0f * std::log2(frequency / referenceA4))) + 69;
-    //finds the octave
     int octave = midiNote / 12 - 1;
-    //maps the note name to the midi note
     juce::String noteName = noteNames[midiNote % 12];
-    //calculates the frequency required for the midi note
     float closestNoteFrequency = referenceA4 * std::pow(2.0f, (midiNote - 69) / 12.0f);
 
-    //checks detected frequency against the note frequency and returns note and octave
     if (std::abs(frequency - closestNoteFrequency) <= tolerance)
     {
         return noteName + juce::String(octave);
@@ -158,17 +137,14 @@ juce::String TabComponent2::getNoteNameFromFrequencyWithTolerance(float frequenc
     }
 }
 
-//checks the note corresponds to the current required note for the scale selected
+// Checks if the detected pitch corresponds to the correct note
 void TabComponent2::checkNoteInScale(float frequency)
 {
-    //finds the detected note and updates the UI to show it
     juce::String detectedNote = getNoteNameFromFrequencyWithTolerance(frequency);
     updateNoteUI("Detected: " + detectedNote);
 
-    //checks if the scale has finished
     if (currentNoteIndex >= currentScaleNotes.size()) return;
 
-    //checks it note played is correct and moves to next note
     if (detectedNote == currentRequiredNote)
     {
         isCorrectNote = true;
@@ -176,67 +152,68 @@ void TabComponent2::checkNoteInScale(float frequency)
     }
 }
 
-// handles the itteration between notes when moving through the scale challenge
+// Move to the next note in the scale challenge
 void TabComponent2::moveToNextNote()
 {
-    //check if there is more notes in the scale
     if (currentNoteIndex < currentScaleNotes.size() - 1)
     {
-        // moves onto the next note
         currentNoteIndex++;
         currentRequiredNote = currentScaleNotes[currentNoteIndex];
-        isCorrectNote = false;  // Resets after correct note is played
-        
-        //updtes timer after delay
-        juce::Timer::callAfterDelay(1000, [this]() {
+        isCorrectNote = false;
+
+        showMessageWithDelay("Correct!", 1000, [this]()
+        {
             updateRequiredNote();
-            updateStatusUI("Correct!");
-             //resets status
-            juce::Timer::callAfterDelay(2000, [this]() {
-                updateStatusUI("");
-                isCorrectNote = true;  // Set after message clears
+            showMessageWithDelay("", 2000, [this]()
+            {
+                isCorrectNote = true;
             });
         });
     }
-    else
-    {
-        //alerts the user that the scale is complete
-        juce::Timer::callAfterDelay(1000, [this]() {
-            updateStatusUI("Scale completed!");
-            isCorrectNote = false;
-        });
-    }
+    else if (!scaleCompleted)
+        {
+        
+            scaleCompleted = true;
+            showMessageWithDelay("Scale completed!", 4000, [this]()
+            {
+                updateStatusUI("");
+            });
+        }
 }
 
-//handles UI update for notes on JUCE message thread
+//UI update for detected note
 void TabComponent2::updateNoteUI(const juce::String& message)
 {
     if (noteLabel.getText() != message)
     {
-        juce::MessageManager::callAsync([this, message]() {
+        juce::MessageManager::callAsync([this, message]()
+        {
             noteLabel.setText(message, juce::dontSendNotification);
+            repaint();
         });
     }
 }
 
-//hadnles UI update for status on the message thread
+//UI update for status
 void TabComponent2::updateStatusUI(const juce::String& message)
 {
     if (statusLabel.getText() != message)
     {
-        juce::MessageManager::callAsync([this, message]() {
+        juce::MessageManager::callAsync([this, message]()
+        {
             statusLabel.setText(message, juce::dontSendNotification);
+            repaint();
         });
     }
 }
 
-//resets the current scale challenge
+//Reset the scale challenge
 void TabComponent2::resetChallenge()
 {
     currentNoteIndex = 0;
     isCorrectNote = false;
+    scaleCompleted = false;
 
-    // Reload the current scale
     if (scaleComboBox.getSelectedId() > 0)
     {
         loadScale();
@@ -244,8 +221,7 @@ void TabComponent2::resetChallenge()
     }
 }
 
-//handles the loading of scales with relevent information about the scale
-//add more scales here //////
+//loads the selected scale
 void TabComponent2::loadScale()
 {
     stringAndFret.clear();
@@ -266,6 +242,7 @@ void TabComponent2::loadScale()
                 {"2nd string", "open"}      // B3
             };
             break;
+            
         case 2: // A Minor Scale
             currentScaleNotes = { "A2", "B2", "C3", "D3", "E3", "F3", "G3" };
             stringAndFret = {
@@ -278,6 +255,7 @@ void TabComponent2::loadScale()
                 {"3rd string", "open"}      // G3
             };
             break;
+
         case 3: // C Major Pentatonic Scale
             currentScaleNotes = { "C3", "D3", "E3", "G3", "A3" };
             stringAndFret = {
@@ -288,6 +266,7 @@ void TabComponent2::loadScale()
                 {"3rd string", "2nd fret"}  // A3
             };
             break;
+
         case 4: // A Minor Pentatonic Scale
             currentScaleNotes = { "A2", "C3", "D3", "E3", "G3" };
             stringAndFret = {
@@ -298,7 +277,8 @@ void TabComponent2::loadScale()
                 {"3rd string", "open"}      // G3
             };
             break;
-        case 5: // E Minor Pentatonic Scale
+
+        case 5: // E Blues Scale
             currentScaleNotes = { "E2", "G2", "A2", "A#2", "B2", "D3" };
             stringAndFret = {
                 {"6th string", "open"},     // E2
@@ -309,22 +289,21 @@ void TabComponent2::loadScale()
                 {"4th string", "open"}      // D3
             };
             break;
+
         default:
             currentScaleNotes.clear();
             stringAndFret.clear();
             break;
     }
 
-    //only displays the first note of the scale to be played
-    //after loading sets the first note to be played
-        if (!currentScaleNotes.empty())
-        {
-            currentRequiredNote = currentScaleNotes[currentNoteIndex];
-            updateRequiredNote();
-        }
+    if (!currentScaleNotes.empty())
+    {
+        currentRequiredNote = currentScaleNotes[currentNoteIndex];
+        updateRequiredNote();
+    }
 }
 
-//updates the note required to be played on the UI
+// Updates the required note on the UI
 void TabComponent2::updateRequiredNote()
 {
     if (currentNoteIndex < currentScaleNotes.size())
@@ -333,15 +312,15 @@ void TabComponent2::updateRequiredNote()
             "Play: " + currentRequiredNote + " on " + stringAndFret[currentNoteIndex].first + " at " + stringAndFret[currentNoteIndex].second,
             juce::dontSendNotification
         );
+        repaint();  // Repaint when the required note changes
     }
 }
 
-//Info overlay for tab 2
+// Info overlay
 void TabComponent2::toggleInfoOverlay()
 {
     if (!infoOverlay.isVisible())
     {
-        //text for info overlay
         infoOverlay.setInfoContent("This is the information for TabComponent2.\n\nHere you can play scales and detect notes.");
         infoOverlay.setVisible(true);
         infoOverlay.toFront(true);
@@ -352,18 +331,14 @@ void TabComponent2::toggleInfoOverlay()
     }
 }
 
-
-void TabComponent2::timerCallback()
+//show a message with a delay
+void TabComponent2::showMessageWithDelay(const juce::String& message, int delay, std::function<void()> callback)
 {
-    //repaint only when necessary
-    if (isCorrectNote)
-    {
-        repaint();
-    }
+    updateStatusUI(message);
+    juce::Timer::callAfterDelay(delay, [callback]() { callback(); });
 }
 
 void TabComponent2::releaseResources()
 {
-    stopTimer();
-}
 
+}

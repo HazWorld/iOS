@@ -1,6 +1,6 @@
 #pragma once
 
-#include <JuceHeader.h>
+#include "JuceHeader.h"
 
 class CustomLookAndFeel : public juce::LookAndFeel_V4
 {

@@ -1,6 +1,6 @@
 #pragma once
 
-#include <JuceHeader.h>
+#include "JuceHeader.h"
 #include "InfoOverlay.hpp"
 
 class TabComponent1 : public juce::Component

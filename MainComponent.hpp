@@ -1,6 +1,6 @@
 #pragma once
 
-#include <JuceHeader.h>
+#include "JuceHeader.h"
 #include "TabComponent1.hpp"
 #include "TabComponent2.hpp"
 #include "TabComponent3.hpp"

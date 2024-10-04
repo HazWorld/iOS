@@ -1,12 +1,6 @@
-/*
-  ==============================================================================
 
-    This file contains the basic startup code for a JUCE application.
 
-  ==============================================================================
-*/
-
-#include <JuceHeader.h>
+#include "JuceHeader.h"
 #include "MainComponent.hpp"
 
 class GuitarLearningApp40181418Application  : public juce::JUCEApplication

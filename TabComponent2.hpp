@@ -1,11 +1,10 @@
 #pragma once
 
-#include <JuceHeader.h>
+#include "JuceHeader.h"
 #include "YINAudioComponent.hpp"
 #include "InfoOverlay.hpp"
 
-class TabComponent2 : public juce::Component,
-                      private juce::Timer
+class TabComponent2 : public juce::Component
 {
 public:
     TabComponent2();
@@ -43,6 +42,7 @@ private:
     juce::String currentRequiredNote;
     int currentNoteIndex;
     bool isCorrectNote;
+    bool scaleCompleted;
     
     InfoOverlay infoOverlay;
     juce::TextButton infoButton;
@@ -54,24 +54,17 @@ private:
     int stabilityCounter;
     int requiredStabilityCount;
 
-
-    void timerCallback() override;
-
+    // Utility methods
     juce::String getNoteNameFromFrequencyWithTolerance(float frequency);
 
     void checkNoteInScale(float frequency);
-
     void loadScale();
-
     void updateRequiredNote();
+    void moveToNextNote();
+    void toggleInfoOverlay();
 
     void placeComponent(juce::Component& comp, juce::Rectangle<int>& area, int height, int spacing);
-    
     void showMessageWithDelay(const juce::String& message, int delay, std::function<void()> callback);
-    
-    void moveToNextNote();
-    
-    void toggleInfoOverlay();
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(TabComponent2)
 };

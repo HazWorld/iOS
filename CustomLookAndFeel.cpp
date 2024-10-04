@@ -2,9 +2,10 @@
 
 CustomLookAndFeel::CustomLookAndFeel()
 {
-    setColour(juce::ResizableWindow::backgroundColourId, juce::Colours::white);
+    
 }
 
+//this handles the dawing of the tab button
 void CustomLookAndFeel::drawTabButton(juce::TabBarButton& button, juce::Graphics& g, bool isMouseOver, bool isMouseDown)
 {
     auto area = button.getLocalBounds().toFloat();
@@ -33,3 +34,4 @@ int CustomLookAndFeel::getTabButtonBestWidth(juce::TabBarButton&, int)
 {
     return 150; 
 }
+

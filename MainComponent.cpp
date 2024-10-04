@@ -9,7 +9,6 @@ MainComponent::MainComponent()
     DBG("MainComponent Constructor Called");
 
 
-    setLookAndFeel(&customLookAndFeel);
     tabs.setLookAndFeel(&customLookAndFeel);
 
     tabs.setColour(juce::TabbedComponent::outlineColourId, juce::Colour::fromRGB(240, 230, 200));
@@ -40,7 +39,7 @@ MainComponent::MainComponent()
 
 MainComponent::~MainComponent()
 {
-
+    tabs.setLookAndFeel(nullptr);
     setLookAndFeel(nullptr);
     shutdownAudio();
 }
@@ -70,6 +69,7 @@ void MainComponent::prepareToPlay(int samplesPerBlockExpected, double sampleRate
         " and samplesPerBlockExpected: " + juce::String(samplesPerBlockExpected));
 
     tab2.prepareToPlay(samplesPerBlockExpected, sampleRate);
+    tab3.prepareToPlay(samplesPerBlockExpected, sampleRate);
 }
 
 void MainComponent::getNextAudioBlock(const juce::AudioSourceChannelInfo& bufferToFill)

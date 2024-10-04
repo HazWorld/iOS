@@ -5,7 +5,7 @@
 // Tweakable parameters
 const float DEFAULT_SAMPLE_RATE = 48000.0f;
 const float DEFAULT_TOLERANCE = 0.01f;
-const float DEFAULT_INPUT_MAGNITUDE_THRESHOLD = 0.000001f;
+const float DEFAULT_INPUT_MAGNITUDE_THRESHOLD = 0.05f;
 const float DEFAULT_DYNAMIC_THRESHOLD_MULTIPLIER = 0.005f;
 const float FIXED_DYNAMIC_TOLERANCE = 0.05f;  // Static tolerance for low-frequency detection
 const int MIN_BUFFER_SIZE = 8192;  // Minimum buffer size for accurate low-frequency detection
@@ -17,30 +17,29 @@ YINAudioComponent::YINAudioComponent()
 
 void YINAudioComponent::initialize(float sampleRate, int bufferSize)
 {
-    DBG("Initializing YINAudioComponent with sample rate: " + juce::String(sampleRate) + " and buffer size: " + juce::String(bufferSize));
+    DBG("Initializing with sample rate: " + juce::String(sampleRate) + " and buffer size: " + juce::String(bufferSize));
 
     if (sampleRate <= 0 || bufferSize <= 0)
     {
-        DBG("Error: Invalid sample rate or buffer size. Initialization failed.");
+        DBG("Invalid sample rate or buffer size- initialization failed.");
         return;
     }
 
     this->sampleRate = sampleRate;
 
-    // Pre-allocate buffer sizes for performance
+    //allocate buffer sizes
     int detectionBufferSize = bufferSize < MIN_BUFFER_SIZE ? MIN_BUFFER_SIZE : bufferSize;
     yinBuffer.resize(detectionBufferSize / 2);
     waveformBuffer.resize(detectionBufferSize);
     accumulatedBuffer.reserve(detectionBufferSize);
 
-    // Precompute Hamming window to avoid recalculating
+    //precompute Hamming window to avoid recalculating
     hammingWindow.resize(detectionBufferSize);
     for (int i = 0; i < detectionBufferSize; ++i)
     {
         hammingWindow[i] = 0.54f - 0.46f * std::cos(2.0f * juce::MathConstants<float>::pi * i / (detectionBufferSize - 1));
     }
 
-    DBG("Buffers resized: yinBuffer to " + juce::String(detectionBufferSize / 2) + ", waveformBuffer to " + juce::String(detectionBufferSize));
 }
 
 void YINAudioComponent::applyHammingWindow(std::vector<float>& buffer)
@@ -65,7 +64,7 @@ float YINAudioComponent::processAudioBuffer(const float* audioBuffer, int buffer
         float detectedPitch = process(processBuffer.data(), detectionBufferSize);
         if (detectedPitch > 0.0f)
         {
-            DBG("Single pitch detected: " + juce::String(detectedPitch));
+            DBG("Pitch detected: " + juce::String(detectedPitch));
             // Handle the detected pitch
             accumulatedBuffer.clear();  // Clear the buffer to avoid future detection issues
             return detectedPitch;

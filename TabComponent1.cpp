@@ -1,10 +1,10 @@
 #include "TabComponent1.hpp"
 
-//==============================================================================
+
 // TabComponent1 implementation (Chord Display)
 TabComponent1::TabComponent1()
 {
-    // Set up the chord label UI
+    //UI setup
     addAndMakeVisible(chordLabel);
     chordLabel.setText("Select a chord...", juce::dontSendNotification);
     chordLabel.setFont(juce::FontOptions(24.0f, juce::Font::bold));
@@ -15,9 +15,9 @@ TabComponent1::TabComponent1()
     infoButton.setButtonText("Info");
     infoButton.onClick = [this]() { toggleInfoOverlay(); };
     addAndMakeVisible(infoOverlay);
-    infoOverlay.setVisible(false);  // Initially hidden
+    infoOverlay.setVisible(false);
 
-    // Set up the chord ComboBox for selecting chords
+    //combobox for dropdown menuu
     chordComboBox.addItem("C Major", 1);
     chordComboBox.addItem("G Major", 2);
     chordComboBox.addItem("D Major", 3);
@@ -26,29 +26,32 @@ TabComponent1::TabComponent1()
     chordComboBox.addItem("A Minor", 6);
     chordComboBox.addItem("E Minor", 7);
 
-    chordComboBox.onChange = [this]() { loadChord(); };  // Callback when a new chord is selected
+    //loads the chord when selected
+    chordComboBox.onChange = [this]() { loadChord(); };
     addAndMakeVisible(chordComboBox);
 
-    // Initialize the layout and size of the component
-    setSize(500, 300);  // Reduced size to fit everything on screen
+    setSize(500, 300);
 }
 
+//this handles the drawing of the frets and the placement
+//of finger positions and muted strings
 void TabComponent1::paint(juce::Graphics& g)
 {
-    // Set background color for the fretboard area
-    g.fillAll(juce::Colour::fromRGB(240, 230, 200));  // Light wood texture background
 
-    // Draw frets with gradient and shadows for a 3D look
+    g.fillAll(juce::Colour::fromRGB(240, 230, 200));
+
+    //drawing fret lines
     juce::ColourGradient fretGradient(juce::Colours::lightgrey, 0, 0, juce::Colours::darkgrey, getWidth(), 0, false);
     g.setGradientFill(fretGradient);
 
-    // Draw fret lines (4 frets, reduced spacing)
-    for (int i = 0; i < 4; ++i)  // Limiting to 4 frets
+   //currently limited to 4 frets, this can be expanded
+    for (int i = 0; i < 4; ++i)
     {
-        int fretX = 80 + i * 80;  // Reduced spacing for frets
+        //fret spaceing
+        int fretX = 80 + i * 80;
         g.setColour(juce::Colours::darkgrey);
 
-        //makes the first fret line thicker to resemble the start of the fretboard
+        //increased first line thickness to show start of fretboard
         if (i == 0)
         {
             g.drawLine(fretX, 80, fretX, 260, 9.0f);
@@ -81,7 +84,7 @@ void TabComponent1::paint(juce::Graphics& g)
             int string = pos.first;
             int fret = pos.second;
 
-            //fret and stringn psoitions
+            //fret and string psoitions
             float xPos = 80 + fret * 80 - 40;
             float yPos = 100 + string * 30 - 10;
 
@@ -105,13 +108,15 @@ void TabComponent1::paint(juce::Graphics& g)
             float xPos = 50;
             float yPos = 100 + string * 30;
 
-            // Draw "X" above the muted string
+            //places x beside muted strings
             g.setFont(juce::FontOptions(16.0f, juce::Font::bold));
             g.drawText("X", xPos - 30, yPos - 40, 20, 20, juce::Justification::centred);
         }
     }
 }
 
+
+//chord finger positions and muted strings are stored here, add more here
 void TabComponent1::loadChord()
 {
     currentChordPositions.clear();
@@ -169,6 +174,8 @@ void TabComponent1::loadChord()
     repaint();
 }
 
+
+//UI layout
 void TabComponent1::resized()
 {
     
@@ -189,6 +196,8 @@ void TabComponent1::resized()
     infoOverlay.setBounds(getLocalBounds());
 }
 
+
+//info overlay
 void TabComponent1::toggleInfoOverlay()
 {
     juce::MessageManager::callAsync([this]()

@@ -1,9 +1,11 @@
 #pragma once
 
-#include <JuceHeader.h>
+#include "JuceHeader.h"
+#include "InfoOverlay.hpp"
+#include <chrono>
+#include <vector>
 
-class TabComponent3 : public juce::Component,
-                      public juce::Timer
+class TabComponent3 : public juce::Component
 {
 public:
     TabComponent3();
@@ -12,41 +14,37 @@ public:
     void paint(juce::Graphics& g) override;
     void resized() override;
 
-    // Audio processing
     void processAudioBuffer(const juce::AudioSourceChannelInfo& bufferToFill);
     void prepareToPlay(int samplesPerBlockExpected, double sampleRate);
-    
     void releaseResources();
 
 private:
-    // UI components
-    juce::Label label;
-    juce::TextButton tapButton;
+    //UI
+    juce::Label detectedTempoLabel;
+    juce::Label setTempoLabel;
     juce::Slider tempoSlider;
 
-    // Tempo detection
+    //tempo
     std::vector<std::chrono::steady_clock::time_point> tapTimes;
-    double detectedTempo { 120.0 };  // Default tempo in BPM
+    double detectedTempo { 120.0 };
     double currentTempo { 0.0 };
     float dynamicThreshold { 0.05f };
     float smoothedMagnitude { 0.0f };
     float previousMagnitude { 0.0f };
-    bool isPlaying { false };
-    bool isDeviatingFromTempo { false };
-    bool showVisualCue { false };
-    int sampleRate;
-    std::chrono::steady_clock::time_point lastDebounceTime;
+    int sampleRate { 44100 };
+    
+    //info button
+    InfoOverlay infoOverlay;
+    juce::TextButton infoButton;
+
+
     std::chrono::steady_clock::time_point lastPeakTime;
 
-    // FlexBox Layout
-    juce::Rectangle<int> visualCueArea;
-
-    void tapTempo();
     void setManualTempo();
     void detectTempoFromPeaks(float magnitude);
     void adjustThreshold(float magnitude);
-    bool isPlayerInTempo();
-    void timerCallback() override;
+    
+    void toggleInfoOverlay();
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(TabComponent3)
 };
