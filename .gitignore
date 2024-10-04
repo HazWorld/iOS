@@ -1,0 +1,6 @@
+# Xcode specific
+*.xcworkspace
+*.xcuserdata
+DerivedData/
+build/
+*.xcuserdatad
