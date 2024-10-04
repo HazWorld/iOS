@@ -1,7 +1,7 @@
 #include "TabComponent1.hpp"
 
 
-// TabComponent1 implementation (Chord Display)
+//TabComponent1 implementation
 TabComponent1::TabComponent1()
 {
     //UI setup
@@ -80,6 +80,7 @@ void TabComponent1::paint(juce::Graphics& g)
     {
         for (int i = 0; i < currentChordPositions.size(); ++i)
         {
+            //assigns values from loadchord to the string and fret positions
             const auto& pos = currentChordPositions[i];
             int string = pos.first;
             int fret = pos.second;

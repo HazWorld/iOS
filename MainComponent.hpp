@@ -6,7 +6,7 @@
 #include "TabComponent3.hpp"
 #include "CustomLookAndFeel.hpp"
 
-// MainComponent declaration
+//MainComponent declaration
 class MainComponent : public juce::AudioAppComponent
 {
 public:

@@ -1,14 +1,14 @@
 #include "MainComponent.hpp"
 #include "CustomLookAndFeel.hpp"
 
-//==============================================================================
-// MainComponent implementation
+
+//MainComponent
 MainComponent::MainComponent()
     : tabs(juce::TabbedButtonBar::TabsAtBottom)
 {
     DBG("MainComponent Constructor Called");
 
-
+    // sets look and feel to tabs
     tabs.setLookAndFeel(&customLookAndFeel);
 
     tabs.setColour(juce::TabbedComponent::outlineColourId, juce::Colour::fromRGB(240, 230, 200));
@@ -18,6 +18,7 @@ MainComponent::MainComponent()
         setBounds(display->userArea);
     }
 
+    //setting tabs
     std::vector<std::tuple<juce::String, juce::Component*>> tabConfigs = {
         {"Chords", &tab1},
         {"Scales", &tab2},
@@ -27,7 +28,7 @@ MainComponent::MainComponent()
 
     addAndMakeVisible(tabs);
 
-
+    //adds tabs
     for (const auto& config : tabConfigs)
     {
         tabs.addTab(std::get<0>(config), juce::Colours::transparentBlack, std::get<1>(config), false);
@@ -37,6 +38,7 @@ MainComponent::MainComponent()
     setAudioChannels(1, 0);
 }
 
+//MainComponent destructor
 MainComponent::~MainComponent()
 {
     tabs.setLookAndFeel(nullptr);
@@ -44,6 +46,7 @@ MainComponent::~MainComponent()
     shutdownAudio();
 }
 
+//sets padding for safe area bounds
 void MainComponent::resized()
 {
     auto bounds = getLocalBounds();
@@ -57,6 +60,7 @@ void MainComponent::resized()
     tabs.setBounds(bounds);
 }
 
+//sets overall background
 void MainComponent::paint(juce::Graphics& g)
 {
     g.fillAll(juce::Colour::fromRGB(240, 230, 200));
@@ -68,10 +72,12 @@ void MainComponent::prepareToPlay(int samplesPerBlockExpected, double sampleRate
     DBG("prepareToPlay called with sampleRate: " + juce::String(sampleRate) +
         " and samplesPerBlockExpected: " + juce::String(samplesPerBlockExpected));
 
+    //calls prepare to play for tab 2 and 3
     tab2.prepareToPlay(samplesPerBlockExpected, sampleRate);
     tab3.prepareToPlay(samplesPerBlockExpected, sampleRate);
 }
 
+//this handles the audio buffer management depending on the selected tab
 void MainComponent::getNextAudioBlock(const juce::AudioSourceChannelInfo& bufferToFill)
 {
     if (bufferToFill.buffer == nullptr || bufferToFill.buffer->getNumChannels() == 0)
@@ -80,6 +86,7 @@ void MainComponent::getNextAudioBlock(const juce::AudioSourceChannelInfo& buffer
         return;
     }
 
+    //process audio depending on selected tab
     switch (tabs.getCurrentTabIndex())
     {
         case 1:
@@ -96,17 +103,20 @@ void MainComponent::getNextAudioBlock(const juce::AudioSourceChannelInfo& buffer
     }
 }
 
+//calls release resources for tab 2 and 3
 void MainComponent::releaseResources()
 {
     tab2.releaseResources();
     tab3.releaseResources();
 }
 
+//handles app suspensions
 void MainComponent::suspended()
 {
     shutdownAudio();
 }
 
+//handles app resumes
 void MainComponent::resumed()
 {
     setAudioChannels(1, 0);

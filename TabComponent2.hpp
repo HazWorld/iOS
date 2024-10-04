@@ -10,32 +10,31 @@ public:
     TabComponent2();
     ~TabComponent2() override;
 
-    // JUCE component overrides
     void resized() override;
     void paint(juce::Graphics& g) override;
 
-    // Audio processing
+
     void prepareToPlay(int samplesPerBlockExpected, double sampleRate);
     void processAudioBuffer(const juce::AudioSourceChannelInfo& bufferToFill);
 
-    // UI update
+
     void updateNoteUI(const juce::String& message);
     void updateStatusUI(const juce::String& message);
 
-    // Reset the challenge
+
     void resetChallenge();
     
     void releaseResources();
 
 private:
-    // UI Components
+
     juce::Label noteLabel;
     juce::Label requiredNoteLabel;
     juce::ComboBox scaleComboBox;
     juce::TextButton resetButton;
     juce::Label statusLabel;
 
-    // Audio and Note Detection
+
     YINAudioComponent yinProcessor;
     float lastFrequency;
     juce::String currentNote;
@@ -47,14 +46,13 @@ private:
     InfoOverlay infoOverlay;
     juce::TextButton infoButton;
 
-    // Scale Data
     std::vector<juce::String> currentScaleNotes;
     std::vector<std::pair<juce::String, juce::String>> stringAndFret;
 
     int stabilityCounter;
     int requiredStabilityCount;
 
-    // Utility methods
+
     juce::String getNoteNameFromFrequencyWithTolerance(float frequency);
 
     void checkNoteInScale(float frequency);

@@ -1,6 +1,5 @@
 #include "TabComponent2.hpp"
 
-//==============================================================================
 TabComponent2::TabComponent2()
 {
     //set up UI components
@@ -28,6 +27,7 @@ TabComponent2::TabComponent2()
     addAndMakeVisible(infoOverlay);
     infoOverlay.setVisible(false);
     
+    //combobox control for scales
     addAndMakeVisible(scaleComboBox);
     scaleComboBox.addItem("C Major", 1);
     scaleComboBox.addItem("A Minor", 2);
@@ -83,7 +83,7 @@ void TabComponent2::paint(juce::Graphics& g)
     g.fillAll(juce::Colour::fromRGB(240, 230, 200));
 }
 
-//starts yin processing
+//starts yin processor initializer
 void TabComponent2::prepareToPlay(int samplesPerBlockExpected, double sampleRate)
 {
     yinProcessor.initialize(sampleRate, samplesPerBlockExpected);
@@ -92,18 +92,23 @@ void TabComponent2::prepareToPlay(int samplesPerBlockExpected, double sampleRate
 //audio processing for note detection from YINAudioComponent
 void TabComponent2::processAudioBuffer(const juce::AudioSourceChannelInfo& bufferToFill)
 {
+    //checks buffers
     if (bufferToFill.buffer != nullptr && bufferToFill.buffer->getNumChannels() > 0)
     {
+        //audio sample loop
         for (int sample = 0; sample < bufferToFill.buffer->getNumSamples(); ++sample)
         {
             float sum = 0.0f;
+            //averages signal for mono processing
             for (int channel = 0; channel < bufferToFill.buffer->getNumChannels(); ++channel)
                 sum += bufferToFill.buffer->getReadPointer(channel)[sample];
 
             float monoSample = sum / bufferToFill.buffer->getNumChannels();
             
+            //feeding mono sample into yin processor
             float detectedPitch = yinProcessor.processAudioBuffer(&monoSample, 1);
 
+            //calls checkNoteInScale function for the detected pitch
             if (detectedPitch > 0.0f)
             {
                 juce::MessageManager::callAsync([this, detectedPitch]()
@@ -115,18 +120,26 @@ void TabComponent2::processAudioBuffer(const juce::AudioSourceChannelInfo& buffe
     }
 }
 
-// Takes the detected pitch and matches it to the correct note
+//takes the detected pitch and matches it to the correct note
+//returns note plus the octave
 juce::String TabComponent2::getNoteNameFromFrequencyWithTolerance(float frequency)
 {
     static const std::array<juce::String, 12> noteNames = { "C", "C#", "D", "D#", "E", "F", "F#", "G", "G#", "A", "A#", "B" };
+    //reference pitch
     const float referenceA4 = 440.0f;
+    //frequency tolerance for detected pitches
     const float tolerance = 5.0f;
 
+    //converts frequency to MIDI note
     int midiNote = static_cast<int>(std::round(12.0f * std::log2(frequency / referenceA4))) + 69;
+    //finds octave
     int octave = midiNote / 12 - 1;
+    //maps note name to the MIDI note
     juce::String noteName = noteNames[midiNote % 12];
+    //checks note for closest frequency to MIDI note
     float closestNoteFrequency = referenceA4 * std::pow(2.0f, (midiNote - 69) / 12.0f);
 
+    //applies tollerence and returns note name and octave
     if (std::abs(frequency - closestNoteFrequency) <= tolerance)
     {
         return noteName + juce::String(octave);
@@ -137,14 +150,17 @@ juce::String TabComponent2::getNoteNameFromFrequencyWithTolerance(float frequenc
     }
 }
 
-// Checks if the detected pitch corresponds to the correct note
+//checks if the detected pitch corresponds to the correct note
 void TabComponent2::checkNoteInScale(float frequency)
 {
+    //updates UI with detected note
     juce::String detectedNote = getNoteNameFromFrequencyWithTolerance(frequency);
     updateNoteUI("Detected: " + detectedNote);
 
+    //checks if there are further notes in the scale
     if (currentNoteIndex >= currentScaleNotes.size()) return;
 
+    //cheks if the notes match and calls move to next note if true
     if (detectedNote == currentRequiredNote)
     {
         isCorrectNote = true;
@@ -152,18 +168,23 @@ void TabComponent2::checkNoteInScale(float frequency)
     }
 }
 
-// Move to the next note in the scale challenge
+
+//handles the itteration between notes when moving through the scales chllange
 void TabComponent2::moveToNextNote()
 {
+    //checks if there is more notes in the scale
     if (currentNoteIndex < currentScaleNotes.size() - 1)
     {
+        //itterates the current note
         currentNoteIndex++;
         currentRequiredNote = currentScaleNotes[currentNoteIndex];
         isCorrectNote = false;
 
+        //updates the UI after a delay
         showMessageWithDelay("Correct!", 1000, [this]()
         {
             updateRequiredNote();
+            //resets the UI
             showMessageWithDelay("", 2000, [this]()
             {
                 isCorrectNote = true;
@@ -173,6 +194,7 @@ void TabComponent2::moveToNextNote()
     else if (!scaleCompleted)
         {
         
+            //updates the UI to show the scale is complete
             scaleCompleted = true;
             showMessageWithDelay("Scale completed!", 4000, [this]()
             {
@@ -221,7 +243,8 @@ void TabComponent2::resetChallenge()
     }
 }
 
-//loads the selected scale
+//handles the loading of the scales with relevent information about the scale
+//add more scales here //////
 void TabComponent2::loadScale()
 {
     stringAndFret.clear();

@@ -9,23 +9,23 @@ public:
     TabComponent1();
     ~TabComponent1() override = default;
 
-    // UI painting and layout
+
     void paint(juce::Graphics& g) override;
     void resized() override;
 
 private:
-    // Helper function to load chord positions
+    
     void loadChord();
 
     // UI components
-    juce::Label chordLabel;        // Displays selected chord name
-    juce::ComboBox chordComboBox;  // Dropdown to select chords
+    juce::Label chordLabel;
+    juce::ComboBox chordComboBox;
     InfoOverlay infoOverlay;
     juce::TextButton infoButton;
 
     // Chord positions
-    std::vector<std::pair<int, int>> currentChordPositions; // Stores string and fret positions of the current chord
-    std::vector<int> mutedStrings;  // Stores muted string numbers
+    std::vector<std::pair<int, int>> currentChordPositions;
+    std::vector<int> mutedStrings; 
     
     void toggleInfoOverlay();
     

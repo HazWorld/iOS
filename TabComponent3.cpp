@@ -200,6 +200,7 @@ void TabComponent3::prepareToPlay(int samplesPerBlockExpected, double sampleRate
     this->sampleRate = static_cast<int>(sampleRate);
 }
 
+//resource releasing 
 void TabComponent3::releaseResources()
 {
 }
