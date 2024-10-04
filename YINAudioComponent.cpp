@@ -82,6 +82,9 @@ float YINAudioComponent::processAudioBuffer(const float* audioBuffer, int buffer
     return -1.0f; //no pitch detected
 }
 
+
+//this is the main process of the YIN algorithm
+//it includes the auto correlation, normalization and parabolic interpolation
 float YINAudioComponent::process(const float* audioBuffer, int bufferSize)
 {
     //checks for audio buffer

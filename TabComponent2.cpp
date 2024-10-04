@@ -344,7 +344,7 @@ void TabComponent2::toggleInfoOverlay()
 {
     if (!infoOverlay.isVisible())
     {
-        infoOverlay.setInfoContent("This is the information for TabComponent2.\n\nHere you can play scales and detect notes.");
+        infoOverlay.setInfoContent("Here you can play scales and see what notes you're playing!!\n\nSelect a scale from the list to get started,\nthen follow the instructions to play the scale!\n\nDont worry if you mess up,\nthe scale can be restarted with the 'Start Again' button!");
         infoOverlay.setVisible(true);
         infoOverlay.toFront(true);
     }

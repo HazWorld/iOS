@@ -88,7 +88,7 @@ void TabComponent3::toggleInfoOverlay()
 {
     if (!infoOverlay.isVisible())
     {
-        infoOverlay.setInfoContent("This is the information for TabComponent3.\n\nHere you can set and detect the tempo."); // change the message here
+        infoOverlay.setInfoContent("This is the Tempo Tracker!\n\nHere, you can set a tempo you want to play at, then the closer you are to that tempo, the greener the screen will get!!\n\nSet the tempo with the slider then start playing!"); // change the message here
         infoOverlay.setVisible(true);
         infoOverlay.toFront(true);
     }
